@@ -37,7 +37,6 @@ export const NavBar = () => {
             </nav>
           </div>
 
-          {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-3">
             <Button
               variant="ghost"
