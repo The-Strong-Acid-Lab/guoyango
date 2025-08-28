@@ -70,9 +70,9 @@ export const ProductFilters = ({
               onChange={(e) => onSortChange(e.target.value)}
               className="w-full sm:w-auto text-sm border border-gray-200 rounded-lg px-3 py-2 h-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             >
-              <option value="popularity">最受欢迎</option>
-              <option value="price-low">价格：低到高</option>
-              <option value="price-high">价格：高到底</option>
+              {/* <option value="popularity">最受欢迎</option> */}
+              <option value="price_asc">价格：低到高</option>
+              <option value="price_desc">价格：高到低</option>
             </select>
           </div>
         </div>

@@ -1,17 +1,59 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
+import localFont from "next/font/local";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const alibabaPuHuiTi = localFont({
+  src: [
+    {
+      path: "../../public/fonts/AlibabaPuHuiTi-3-35-Thin.woff2",
+      weight: "100",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AlibabaPuHuiTi-3-45-Light.woff2",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AlibabaPuHuiTi-3-55-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AlibabaPuHuiTi-3-65-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AlibabaPuHuiTi-3-75-SemiBold.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AlibabaPuHuiTi-3-85-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AlibabaPuHuiTi-3-95-ExtraBold.woff2",
+      weight: "800",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AlibabaPuHuiTi-3-105-Heavy.woff2",
+      weight: "900",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AlibabaPuHuiTi-3-115-Black.woff2",
+      weight: "950",
+      style: "normal",
+    },
+  ],
+  variable: "--font-alibaba-puhuiti",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -26,9 +68,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${alibabaPuHuiTi.variable} font-sans antialiased`}>
         <div className="min-h-screen bg-gray-50">
           <NavBar />
           <main className="flex-1">{children}</main>

@@ -2,13 +2,89 @@
 
 import { motion } from "framer-motion";
 import { ProductFilters } from "./components/ProductFilters";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import ProductCard from "./components/ProductCard";
+import { supabase } from "@/lib/supabase";
+import { debounce } from "lodash";
+import ProductListItem from "./components/ProductListItem";
+import { Product } from "./components/types";
 
 export default function Home() {
   const [sortBy, setSortBy] = useState("newest");
   const [searchQuery, setSearchQuery] = useState("");
   const [displayMode, setDisplayMode] = useState<"grid" | "list">("grid");
-  const [products] = useState(["123"]);
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.from("products").select("*");
+      if (!error) {
+        setProducts(data as Product[]);
+      }
+      setLoading(false);
+    };
+    fetchProducts();
+  }, []);
+
+  const debouncedSearch = useMemo(() => {
+    return debounce(async (query: string) => {
+      const { data, error } = await supabase.rpc("search_products", {
+        p_query: query,
+        p_sort: sortBy,
+      });
+      if (!error) {
+        setProducts(data);
+      }
+    }, 500);
+  }, [sortBy]);
+
+  useEffect(() => {
+    debouncedSearch(searchQuery);
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [searchQuery, debouncedSearch, sortBy]);
+
+  const addToCart = (product: Product) => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const existingItem = cart.find((item) => item.id === product.id);
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cart.push({ ...product, quantity: 1 });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    window.dispatchEvent(new Event("cartUpdated"));
+
+    // Show success feedback (could be a toast)
+    console.log(`Added ${product.name} to cart`);
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 overflow-hidden"
+            >
+              <div className="h-32 sm:h-48 bg-gray-200 animate-pulse"></div>
+              <div className="p-3 sm:p-6 space-y-2 sm:space-y-3">
+                <div className="h-3 sm:h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-2 sm:h-3 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                <div className="h-3 sm:h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -18,7 +94,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 px-4"
         >
-          国烟Go优选代购
+          国烟Go
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -39,6 +115,35 @@ export default function Home() {
         onDisplayModeChange={setDisplayMode}
         totalProducts={products.length}
       />
+
+      {displayMode === "grid" ? (
+        <motion.div
+          layout
+          className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6"
+        >
+          {products.map((product, index) => (
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              layout
+            >
+              <ProductCard product={product} onAddToCart={addToCart} />
+            </motion.div>
+          ))}
+        </motion.div>
+      ) : (
+        <motion.div layout className="space-y-3 sm:space-y-4">
+          {products.map((product) => (
+            <ProductListItem
+              key={product.id}
+              product={product}
+              onAddToCart={addToCart}
+            />
+          ))}
+        </motion.div>
+      )}
     </div>
   );
 }

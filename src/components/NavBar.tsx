@@ -3,13 +3,27 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
 export const NavBar = () => {
   const navigation = [{ name: "联系我们", href: "/Contact" }];
-  const [cartCount, _] = useState(1);
+  const [cartCount, setCartCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    setCartCount(cart.reduce((sum, item) => sum + item.quantity, 0));
+
+    // Listen for cart updates
+    const handleCartUpdate = () => {
+      const updatedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+      setCartCount(updatedCart.reduce((sum, item) => sum + item.quantity, 0));
+    };
+
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
+  }, []);
 
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
