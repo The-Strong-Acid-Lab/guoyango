@@ -9,7 +9,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
 import { useRouter } from "next/navigation";
 import AddressForm, { ShippingAddress } from "./components/AddressForm";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useShippingAddresses } from "../hooks/useShippingAddresses";
 import { useAddShippingAddress } from "../hooks/useAddShippingAddress";
@@ -117,13 +116,23 @@ export default function ManageAddresses() {
         </div>
       </div>
 
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          邮寄地址
-        </h1>
-        <p className="text-sm sm:text-base text-gray-500 mt-1 hidden sm:block">
-          管理你的地址
-        </p>
+      <div className="flex flex-row items-center">
+        <div className="flex flex-1 flex-col">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            邮寄地址
+          </h1>
+          <p className="text-sm sm:text-base text-gray-500 mt-1 hidden sm:block">
+            管理你的地址
+          </p>
+        </div>
+
+        <Button
+          onClick={() => setShowForm(true)}
+          className="bg-red-600 hover:bg-red-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          添加新地址
+        </Button>
       </div>
 
       {/* Address Form */}
@@ -192,10 +201,8 @@ export default function ManageAddresses() {
                         </div>
                         <div className="space-y-1 text-sm text-gray-600">
                           <p className="font-medium text-gray-900">
-                            {address.full_name}
+                            {address.address_line_1}
                           </p>
-                          {address.phone && <p>{address.phone}</p>}
-                          <p>{address.address_line_1}</p>
                           {address.address_line_2 && (
                             <p>{address.address_line_2}</p>
                           )}
@@ -204,6 +211,7 @@ export default function ManageAddresses() {
                             {address.postal_code}
                           </p>
                           <p>{address.country}</p>
+                          {address.phone && <p>{address.phone}</p>}
                         </div>
                       </div>
 
