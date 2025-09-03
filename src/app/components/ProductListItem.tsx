@@ -34,7 +34,7 @@ export default function ProductListItem({
       exit={{ opacity: 0, y: -20 }}
       className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300"
     >
-      <Link href={`ProductDetail?id=${product.id}`}>
+      <Link href={`/product/${product.id}`}>
         <div className="flex flex-col sm:flex-row">
           {/* Image */}
           <div className="flex-shrink-0 w-full sm:w-40 md:w-48 h-48 sm:h-32 md:h-auto relative">
@@ -110,11 +110,11 @@ export default function ProductListItem({
               <Button
                 onClick={handleAddToCart}
                 disabled={!product.in_stock}
-                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-200 shrink-0 h-10 sm:h-9 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-200 shrink-0 h-10 sm:h-9 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ShoppingCart className="w-4 h-4 mr-2" />
                 <span className="text-sm">
-                  {product.in_stock ? "Add to Cart" : "Out of Stock"}
+                  {product.in_stock ? "加入购物车" : "售罄"}
                 </span>
               </Button>
             </div>

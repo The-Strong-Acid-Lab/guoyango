@@ -3,6 +3,8 @@ import "./globals.css";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 import localFont from "next/font/local";
+import { Toaster } from "@/components/ui/sonner";
+import Providers from "./Providers";
 
 const alibabaPuHuiTi = localFont({
   src: [
@@ -69,11 +71,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${alibabaPuHuiTi.variable} font-sans antialiased`}>
-        <div className="min-h-screen bg-gray-50">
-          <NavBar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+        <Providers>
+          <div className="min-h-screen flex flex-col bg-gray-50">
+            <Toaster position="top-right" />
+            <NavBar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   );

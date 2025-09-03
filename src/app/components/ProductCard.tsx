@@ -32,7 +32,7 @@ export default function ProductCard({
       transition={{ duration: 0.2 }}
       className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-xl transition-all duration-300"
     >
-      <Link href={`ProductDetail?id=${product.id}`}>
+      <Link href={`/product/${product.id}`}>
         <div className="relative">
           <div className="relative w-full h-32 sm:h-48 group-hover:scale-105 transition-transform duration-500 ">
             <Image
@@ -123,7 +123,7 @@ export default function ProductCard({
         <Button
           onClick={handleAddToCart}
           disabled={!product.in_stock}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-200 h-8 sm:h-10 text-xs sm:text-sm"
+          className="w-full bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-200 h-8 sm:h-10 text-xs sm:text-sm"
         >
           <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
           加入购物车

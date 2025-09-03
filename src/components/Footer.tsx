@@ -17,7 +17,7 @@ export const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="hover:text-emerald-600 transition-colors py-1 block"
+                  className="hover:text-red-600 transition-colors py-1 block"
                 >
                   最畅销
                 </a>
@@ -25,7 +25,7 @@ export const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="hover:text-emerald-600 transition-colors py-1 block"
+                  className="hover:text-red-600 transition-colors py-1 block"
                 >
                   折扣
                 </a>
@@ -38,7 +38,7 @@ export const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="hover:text-emerald-600 transition-colors py-1 block"
+                  className="hover:text-red-600 transition-colors py-1 block"
                 >
                   联系我们
                 </a>
@@ -46,7 +46,7 @@ export const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="hover:text-emerald-600 transition-colors py-1 block"
+                  className="hover:text-red-600 transition-colors py-1 block"
                 >
                   常见问题
                 </a>
@@ -54,7 +54,7 @@ export const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="hover:text-emerald-600 transition-colors py-1 block"
+                  className="hover:text-red-600 transition-colors py-1 block"
                 >
                   物流配送
                 </a>

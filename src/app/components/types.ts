@@ -9,6 +9,10 @@ export interface Product {
   in_stock: boolean;
 }
 
+export interface CartItem extends Product {
+  quantity: number;
+}
+
 export interface ProductCardProps {
   product: Product;
   onAddToCart: (product: ProductCardProps["product"]) => void;

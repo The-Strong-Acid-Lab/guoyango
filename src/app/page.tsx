@@ -49,7 +49,7 @@ export default function Home() {
 
   const addToCart = (product: Product) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const existingItem = cart.find((item) => item.id === product.id);
+    const existingItem = cart.find((item: Product) => item.id === product.id);
 
     if (existingItem) {
       existingItem.quantity += 1;
@@ -59,9 +59,6 @@ export default function Home() {
 
     localStorage.setItem("cart", JSON.stringify(cart));
     window.dispatchEvent(new Event("cartUpdated"));
-
-    // Show success feedback (could be a toast)
-    console.log(`Added ${product.name} to cart`);
   };
 
   if (loading) {

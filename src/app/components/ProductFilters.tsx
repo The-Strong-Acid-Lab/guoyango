@@ -24,15 +24,15 @@ export const ProductFilters = ({
   return (
     <div className="bg-white rounded-lg sm:rounded-2xl border border-gray-100 p-4 sm:p-6 mb-6 sm:mb-8">
       <div className="pt-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 sm:gap-4">
-        <div className="flex flex-col gap-3 ">
-          <div className="relative w-full sm:w-64">
+        <div className="flex flex-col gap-3">
+          <div className="relative w-full sm:w-128">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               type="text"
               placeholder="搜索商品..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-9 w-full sm:w-64"
+              className="pl-9 w-full sm:w-128"
             />
           </div>
           <span className="text-sm text-gray-500 ml-3 sm:text-left sm:whitespace-nowrap">
@@ -68,7 +68,7 @@ export const ProductFilters = ({
             <select
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value)}
-              className="w-full sm:w-auto text-sm border border-gray-200 rounded-lg px-3 py-2 h-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full sm:w-auto text-sm border border-gray-200 rounded-lg px-3 py-2 h-10 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               {/* <option value="popularity">最受欢迎</option> */}
               <option value="price_asc">价格：低到高</option>
