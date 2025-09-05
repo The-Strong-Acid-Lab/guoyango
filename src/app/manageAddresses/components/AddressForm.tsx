@@ -171,7 +171,7 @@ export default function AddressForm({
     >
       <Card className="border-none shadow-lg">
         <CardHeader>
-          <CardTitle>{address ? "编辑地址" : "添加新地址"}</CardTitle>
+          <CardTitle>{address ? "编辑地址" : "添加邮寄地址"}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -240,6 +240,35 @@ export default function AddressForm({
                 )}
               </div>
               <div className="space-y-2">
+                <Label htmlFor="country">国家 *</Label>
+                <Select
+                  value={countryValue}
+                  onValueChange={(value) => {
+                    setValue("country", value, { shouldValidate: true });
+                    setValue("province", "", { shouldValidate: true });
+                  }}
+                  {...register("country", { required: "不能为空" })}
+                >
+                  <SelectTrigger
+                    className={errors.country ? "border-red-500" : ""}
+                  >
+                    <SelectValue placeholder="选择国家" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country.value} value={country.value}>
+                        {country.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.country && (
+                  <span className="text-xs text-red-500">
+                    {errors.country.message}
+                  </span>
+                )}
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="province">州/省 *</Label>
                 <Select
                   value={provinceValue}
@@ -271,41 +300,30 @@ export default function AddressForm({
                 <Label htmlFor="postal_code">邮编 *</Label>
                 <Input
                   id="postal_code"
-                  {...register("postal_code", { required: "不能为空" })}
+                  {...register("postal_code", {
+                    required: "不能为空",
+                    validate: (value) => {
+                      if (countryValue === "Canada") {
+                        // Canadian postal code: A1A 1A1
+                        return /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(
+                          value
+                        )
+                          ? true
+                          : "请输入有效的加拿大邮编 (如 K1A 0A6)";
+                      } else {
+                        // US ZIP code: 12345 or 12345-6789
+                        return /^\d{5}(-\d{4})?$/.test(value)
+                          ? true
+                          : "请输入有效的美国邮编 (如 12345 或 12345-6789)";
+                      }
+                    },
+                  })}
                   placeholder={countryValue === "Canada" ? "K1A 0A6" : "12345"}
                   className={errors.postal_code ? "border-red-500" : ""}
                 />
                 {errors.postal_code && (
                   <span className="text-xs text-red-500">
                     {errors.postal_code.message}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="country">国家 *</Label>
-                <Select
-                  value={countryValue}
-                  onValueChange={(value) =>
-                    setValue("country", value, { shouldValidate: true })
-                  }
-                  {...register("country", { required: "不能为空" })}
-                >
-                  <SelectTrigger
-                    className={errors.country ? "border-red-500" : ""}
-                  >
-                    <SelectValue placeholder="选择国家" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country.value} value={country.value}>
-                        {country.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.country && (
-                  <span className="text-xs text-red-500">
-                    {errors.country.message}
                   </span>
                 )}
               </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export interface PaymentMethodsProps {
   onPayment: (paymethod: "wechat" | "alipay") => void;
@@ -12,16 +12,12 @@ export default function PaymentMethods({ onPayment }: PaymentMethodsProps) {
     {
       id: "wechat",
       name: "微信支付",
-      icon: "💬",
-      description: "Pay securely with WeChat",
-      popular: true,
+      icon: "/wechatpay.png",
     },
     {
       id: "alipay",
-      name: "支付宝",
-      icon: "🅰️",
-      description: "Pay with Alipay",
-      popular: true,
+      name: "支付宝支付",
+      icon: "/alipay.png",
     },
   ];
 
@@ -44,18 +40,16 @@ export default function PaymentMethods({ onPayment }: PaymentMethodsProps) {
             className="relative border rounded-xl p-4 cursor-pointer transition-all duration-200"
             onClick={() => handlePayment(method.id as "wechat" | "alipay")}
           >
-            {method.popular && (
-              <Badge className="absolute -top-2 left-4 bg-red-500 text-white text-xs">
-                热门
-              </Badge>
-            )}
-
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="text-2xl">{method.icon}</div>
+                <Image
+                  src={method.icon}
+                  alt={method.name}
+                  width={24}
+                  height={24}
+                />
                 <div>
                   <h3 className="font-semibold text-gray-900">{method.name}</h3>
-                  <p className="text-sm text-gray-500">{method.description}</p>
                 </div>
               </div>
             </div>

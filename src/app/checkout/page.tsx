@@ -8,10 +8,15 @@ import { useRouter } from "next/navigation";
 import { CartItem } from "../components/types";
 import CartSummary from "./components/CartSummary";
 import PaymentMethods from "./components/PaymentMethods";
+import ShippingAddressSelector from "./components/ShippingAddressSelector";
+import { useCreateOrder } from "../hooks/useCreateOrder";
+import { toast } from "sonner";
 
 export default function Checkout() {
   const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
+  const createOrder = useCreateOrder();
 
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -40,8 +45,26 @@ export default function Checkout() {
   };
 
   const handlePayment = async () => {
-    localStorage.removeItem("cart");
-    window.dispatchEvent(new Event("cartUpdated"));
+    // localStorage.removeItem("cart");
+    // window.dispatchEvent(new Event("cartUpdated"));
+    createOrder.mutate(
+      {
+        shipping_address_id: selectedAddressId,
+        items: cartItems.map((i) => ({
+          product_id: i.id,
+          quantity: i.quantity,
+        })),
+      },
+      {
+        onSuccess: () => {
+          toast.success("订单创建成功");
+          router.push(`/`);
+        },
+        onError: () => {
+          toast.error("订单失败");
+        },
+      }
+    );
   };
 
   if (cartItems.length === 0) {
@@ -108,6 +131,10 @@ export default function Checkout() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mt-8 sm:mt-10">
             {/* Payment Methods */}
             <div className="space-y-4 sm:space-y-6 order-2 lg:order-1">
+              <ShippingAddressSelector
+                selectedAddressId={selectedAddressId}
+                onAddressSelect={setSelectedAddressId}
+              />
               <PaymentMethods onPayment={handlePayment} />
             </div>
 

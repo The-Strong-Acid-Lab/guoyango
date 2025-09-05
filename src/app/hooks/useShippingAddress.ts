@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { ShippingAddress } from "../manageAddresses/components/AddressForm";
 
-export const useShippingAddresses = (userId?: string) => {
+export const useShippingAddress = (userId?: string) => {
   return useQuery({
     queryKey: ["shipping_addresses", userId ?? "me"],
     queryFn: async () => {
@@ -13,10 +14,10 @@ export const useShippingAddresses = (userId?: string) => {
         .from("shipping_addresses")
         .select("*")
         .eq("user_id", finalUserId)
-        .order("created_at", { ascending: false });
+        .order("is_default", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return (data as ShippingAddress[]) || [];
     },
     enabled: !!userId || typeof window !== "undefined",
     staleTime: 0,

@@ -45,7 +45,7 @@ export default function CartSummary({
                 alt={item.name}
                 width={48}
                 height={48}
-                className="w-10 h-10 sm:w-14 sm:h-14 object-contain rounded-lg bg-gray-50 p-1"
+                className="w-10 h-10 sm:w-14 sm:h-14 object-contain rounded-lg bg-gray-300 p-1"
               />
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-xs sm:text-sm truncate">

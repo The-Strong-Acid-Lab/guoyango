@@ -10,7 +10,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useRouter } from "next/navigation";
 import AddressForm, { ShippingAddress } from "./components/AddressForm";
 import { toast } from "sonner";
-import { useShippingAddresses } from "../hooks/useShippingAddresses";
+import { useShippingAddress } from "../hooks/useShippingAddress";
 import { useAddShippingAddress } from "../hooks/useAddShippingAddress";
 import { useUpdateShippingAddress } from "../hooks/useUpdateShippingAddress";
 import { useDeleteShippingAddress } from "../hooks/useDeleteShippingAddress";
@@ -23,7 +23,7 @@ export default function ManageAddresses() {
   const { data: currentUser, isLoading: isLoadingAuth } = useAuth();
   const router = useRouter();
   const { data: addresses, isLoading: isLoadingShippingAddresses } =
-    useShippingAddresses(currentUser?.id);
+    useShippingAddress(currentUser?.id);
   const addAddress = useAddShippingAddress(currentUser?.id);
   const updateAddress = useUpdateShippingAddress();
   const deleteAddress = useDeleteShippingAddress();
@@ -119,7 +119,7 @@ export default function ManageAddresses() {
       <div className="flex flex-row items-center">
         <div className="flex flex-1 flex-col">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            邮寄地址
+            收货地址
           </h1>
           <p className="text-sm sm:text-base text-gray-500 mt-1 hidden sm:block">
             管理你的地址
@@ -131,7 +131,7 @@ export default function ManageAddresses() {
           className="bg-red-600 hover:bg-red-700"
         >
           <Plus className="w-4 h-4 mr-2" />
-          添加新地址
+          添加邮寄地址
         </Button>
       </div>
 
@@ -201,8 +201,10 @@ export default function ManageAddresses() {
                         </div>
                         <div className="space-y-1 text-sm text-gray-600">
                           <p className="font-medium text-gray-900">
-                            {address.address_line_1}
+                            {address.full_name}
                           </p>
+                          {address.phone && <p>{address.phone}</p>}
+                          <p>{address.address_line_1}</p>
                           {address.address_line_2 && (
                             <p>{address.address_line_2}</p>
                           )}
@@ -211,7 +213,6 @@ export default function ManageAddresses() {
                             {address.postal_code}
                           </p>
                           <p>{address.country}</p>
-                          {address.phone && <p>{address.phone}</p>}
                         </div>
                       </div>
 

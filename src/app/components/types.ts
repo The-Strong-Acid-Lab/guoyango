@@ -17,3 +17,33 @@ export interface ProductCardProps {
   product: Product;
   onAddToCart: (product: ProductCardProps["product"]) => void;
 }
+
+export interface OrderItem {
+  id: string;
+  price_each: number;
+  product: Partial<Product>;
+  quantity: number;
+  total_price: number;
+}
+
+export interface ShippingAddress {
+  id?: string;
+  full_name: string;
+  phone: string;
+  address_line_1: string;
+  address_line_2?: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  country: string;
+  is_default: boolean;
+}
+
+export interface Order {
+  id: string;
+  created_at: string;
+  order_items: OrderItem[];
+  total_amount: number;
+  status: string;
+  shipping_address: Partial<ShippingAddress>;
+}
