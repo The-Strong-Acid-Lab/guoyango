@@ -254,7 +254,7 @@ export default function Orders() {
                         </div>
 
                         {/* Payment Method */}
-                        <div className="mt-4">
+                        {/* <div className="mt-4">
                           <div className="flex items-center gap-2 text-sm">
                             <CreditCard className="w-4 h-4 text-gray-400" />
                             <span className="text-gray-600">支付方式：</span>
@@ -262,7 +262,7 @@ export default function Orders() {
                               {order?.payment_method || "12312"}
                             </span>
                           </div>
-                        </div>
+                        </div> */}
                       </div>
 
                       {/* Shipping Address */}
@@ -291,7 +291,7 @@ export default function Orders() {
                     </div>
 
                     {/* Tracking Information */}
-                    {order.tracking_number && (
+                    {/* {order.tracking_number && (
                       <>
                         <Separator />
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
@@ -314,7 +314,7 @@ export default function Orders() {
                           </div>
                         </div>
                       </>
-                    )}
+                    )} */}
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-2 pt-2">
