@@ -40,9 +40,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const onSubmit = async (formData: AuthFormData) => {
     const { error } = await supabase.auth.signInWithOtp({
       email: formData.email,
-      options: {
-        emailRedirectTo: window.location.href,
-      },
+      // options: {
+      //   emailRedirectTo: window.location.href,
+      // },
     });
     if (!error) {
       toast.success("请查看邮件并且进行登录");
