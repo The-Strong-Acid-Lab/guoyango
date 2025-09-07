@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, User, Key, AlertCircle, CheckCircle } from "lucide-react";
+import { X, User, AlertCircle, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -40,9 +40,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const onSubmit = async (formData: AuthFormData) => {
     const { error } = await supabase.auth.signInWithOtp({
       email: formData.email,
-      // options: {
-      //   emailRedirectTo: window.location.href,
-      // },
+      options: {
+        emailRedirectTo: window.location.href,
+      },
     });
     if (!error) {
       toast.success("请查看邮件并且进行登录");
