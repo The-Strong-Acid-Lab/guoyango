@@ -18,6 +18,9 @@ export const useOrder = (userId?: string) => {
           total_amount,
           created_at,
           status,
+          rate,
+          total_amount_in_cny,
+          payment_method,
           shipping_address:shipping_addresses (
             id,
             full_name,

@@ -5,9 +5,15 @@ import Image from "next/image";
 
 export interface PaymentMethodsProps {
   onPayment: (paymethod: "wechat" | "alipay") => void;
+  total: number;
+  exchangeRate: number;
 }
 
-export default function PaymentMethods({ onPayment }: PaymentMethodsProps) {
+export default function PaymentMethods({
+  onPayment,
+  total,
+  exchangeRate,
+}: PaymentMethodsProps) {
   const paymentMethods = [
     {
       id: "wechat",
@@ -52,6 +58,11 @@ export default function PaymentMethods({ onPayment }: PaymentMethodsProps) {
                   <h3 className="font-semibold text-gray-900">{method.name}</h3>
                 </div>
               </div>
+            </div>
+            <div className="mt-2 ml-10">
+              <span className="text-gray-600 text-xs sm:text-sm">{`$${total.toFixed(
+                2
+              )}美元 ≈ ¥${(total * exchangeRate).toFixed(2)}人民币`}</span>
             </div>
           </motion.div>
         ))}

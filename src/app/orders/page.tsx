@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Package,
   Calendar,
-  CreditCard,
   ChevronLeft,
   ChevronRight,
+  Loader2Icon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 import { useOrder } from "../hooks/useOrder";
 import Image from "next/image";
+import { Order } from "../components/types";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 export default function Orders() {
   const router = useRouter();
@@ -27,6 +30,8 @@ export default function Orders() {
   );
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 3;
+  const [isLoadingPayment, setIsLoadingPayment] = useState(false);
+  const [toAlipay, setToAlipay] = useState(false);
 
   const loading = useMemo(
     () => isLoadingAuth || isLoadingOrders,
@@ -41,8 +46,8 @@ export default function Orders() {
         return "bg-blue-100 text-blue-800";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
+      case "paid":
+        return "bg-indigo-100 text-indigo-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -51,15 +56,17 @@ export default function Orders() {
   const getStatusText = (status: string) => {
     switch (status) {
       case "delivered":
-        return "Delivered";
+        return "已寄到";
       case "shipped":
-        return "Shipped";
+        return "已发货";
       case "pending":
-        return "Processing";
-      case "cancelled":
-        return "Cancelled";
+        return "待付款";
+      case "expired":
+        return "已结束（未付款）";
+      case "paid":
+        return "待发货";
       default:
-        return status;
+        return "";
     }
   };
 
@@ -69,10 +76,46 @@ export default function Orders() {
   const endIndex = startIndex + ordersPerPage;
   const currentOrders = orders?.slice(startIndex, endIndex);
 
+  // console.log(currentOrders);
+
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const continueToPay = useCallback(async (order: Order) => {
+    if (order.status === "pending") {
+      if (order.payment_method === "alipay") {
+        setIsLoadingPayment(true);
+        const { data, error } = await supabase.functions.invoke("alipay-qr", {
+          body: {
+            order_id: order.id,
+            shipping_address_id: order.shipping_address.id,
+            items: order.order_items.map((i) => ({
+              product_id: i.product.id,
+              quantity: i.quantity,
+            })),
+            total_amount: order.total_amount,
+            rate: order.rate,
+            total_amount_in_cny: order.total_amount_in_cny,
+          },
+        });
+        if (!error) {
+          console.log("data", data);
+          window.location.href = data.url;
+        } else {
+          console.log("error", error);
+          toast.success("下单失败");
+        }
+        setIsLoadingPayment(false);
+        setToAlipay(true);
+      }
+      if (order.payment_method === "wechat") {
+        setIsLoadingPayment(true);
+        setIsLoadingPayment(false);
+      }
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -130,7 +173,7 @@ export default function Orders() {
             <p className="text-gray-500 mb-6">您会看到所有历史订单</p>
             <Button
               onClick={() => router.push("/")}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-red-600 hover:bg-red-700"
             >
               开始购物
             </Button>
@@ -157,12 +200,14 @@ export default function Orders() {
                         <div className="flex items-center gap-2 mt-1">
                           <Calendar className="w-3 h-3 text-gray-400" />
                           <span className="text-xs sm:text-sm text-gray-500">
-                            {new Date(order.created_at).toLocaleDateString(
+                            {new Date(order.created_at).toLocaleString(
                               "en-US",
                               {
                                 year: "numeric",
                                 month: "numeric",
                                 day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
                               }
                             )}
                           </span>
@@ -173,6 +218,20 @@ export default function Orders() {
                       {getStatusText(order.status)}
                     </Badge>
                   </div>
+
+                  {order.status === "pending" && (
+                    <Button
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700 flex-1 h-10 sm:h-16 text-base mt-4"
+                      onClick={() => continueToPay(order)}
+                      disabled={isLoadingPayment || toAlipay}
+                    >
+                      {isLoadingPayment && toAlipay && (
+                        <Loader2Icon className="animate-spin" />
+                      )}
+                      {toAlipay ? "正在跳转支付宝" : "继续付款"}
+                    </Button>
+                  )}
                 </CardHeader>
 
                 <CardContent className="px-4 sm:px-6 pt-0">
@@ -224,45 +283,42 @@ export default function Orders() {
                           订单信息
                         </h4>
                         <div className="space-y-2 text-sm">
-                          {/* <div className="flex justify-between">
-                            <span className="text-gray-600">Subtotal:</span>
-                            <span>${order.total_amount.toFixed(2)}</span>
-                          </div> */}
-                          {/* <div className="flex justify-between">
-                            <span className="text-gray-600">Shipping:</span>
-                            <span
-                              className={
-                                order.shipping === 0 ? "text-emerald-600" : ""
-                              }
-                            >
-                              {order.shipping === 0
-                                ? "FREE"
-                                : `$${order.shipping.toFixed(2)}`}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Tax:</span>
-                            <span>${order.tax.toFixed(2)}</span>
-                          </div> */}
-                          {/* <Separator /> */}
                           <div className="flex justify-between font-semibold text-base">
                             <span>合计：</span>
-                            <span className="text-emerald-600">
-                              ${order.total_amount.toFixed(2)}
-                            </span>
+                            <div className="flex flex-col items-end">
+                              <span className="text-emerald-600">
+                                ${order.total_amount.toFixed(2)}
+                              </span>
+                              <span className="text-gray-500">
+                                ≈ ¥{order.total_amount_in_cny.toFixed(2)}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
                         {/* Payment Method */}
-                        {/* <div className="mt-4">
-                          <div className="flex items-center gap-2 text-sm">
-                            <CreditCard className="w-4 h-4 text-gray-400" />
+                        <div className="mt-4">
+                          <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-600">支付方式：</span>
-                            <span className="font-medium">
-                              {order?.payment_method || "12312"}
-                            </span>
+                            <div className="flex flex-row gap-2">
+                              <Image
+                                src={
+                                  order?.payment_method === "alipay"
+                                    ? "/alipay.png"
+                                    : "/wechatpay.png"
+                                }
+                                alt={order?.payment_method}
+                                width={24}
+                                height={24}
+                              />
+                              <span className="font-medium">
+                                {order?.payment_method === "alipay"
+                                  ? "支付宝支付"
+                                  : "微信支付"}
+                              </span>
+                            </div>
                           </div>
-                        </div> */}
+                        </div>
                       </div>
 
                       {/* Shipping Address */}
@@ -281,7 +337,7 @@ export default function Orders() {
                             )}
                             <p>
                               {order.shipping_address.city},{" "}
-                              {order.shipping_address.province}{" "}
+                              {order.shipping_address.province},{" "}
                               {order.shipping_address.postal_code}
                             </p>
                             <p>{order.shipping_address.country}</p>
@@ -341,7 +397,7 @@ export default function Orders() {
             className="flex items-center gap-1"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Previous</span>
+            <span className="hidden sm:inline">上一页</span>
           </Button>
 
           <div className="flex items-center gap-1">
@@ -372,7 +428,7 @@ export default function Orders() {
             disabled={currentPage === totalPages}
             className="flex items-center gap-1"
           >
-            <span className="hidden sm:inline">Next</span>
+            <span className="hidden sm:inline">下一页</span>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>

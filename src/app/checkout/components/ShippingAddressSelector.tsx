@@ -98,7 +98,7 @@ export default function ShippingAddressSelector({
                           <p>{address.address_line_2}</p>
                         )}
                         <p>
-                          {address.city}, {address.province}{" "}
+                          {address.city}, {address.province},{" "}
                           {address.postal_code}
                         </p>
                         <p>{address.country}</p>

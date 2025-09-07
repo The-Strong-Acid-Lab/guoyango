@@ -10,18 +10,15 @@ export interface CartSummaryProps {
   cartItems: CartItem[];
   onUpdateQuantity: (itemId: string, newQuantity: number) => void;
   onRemoveItem: (itemId: string) => void;
+  subtotal: number;
 }
 
 export default function CartSummary({
   cartItems,
   onUpdateQuantity,
   onRemoveItem,
+  subtotal,
 }: CartSummaryProps) {
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-
   return (
     <Card className="border-none shadow-lg">
       <CardHeader className="p-4 sm:p-6">

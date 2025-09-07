@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { ArrowLeft, ShoppingBag } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { ArrowLeft, Loader2, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -9,14 +9,15 @@ import { CartItem } from "../components/types";
 import CartSummary from "./components/CartSummary";
 import PaymentMethods from "./components/PaymentMethods";
 import ShippingAddressSelector from "./components/ShippingAddressSelector";
-import { useCreateOrder } from "../hooks/useCreateOrder";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export default function Checkout() {
   const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
-  const createOrder = useCreateOrder();
+  const [exchangeRate, setExchangeRate] = useState(7.14);
+  const [isLoadingPayment, setIsLoadingPayment] = useState(false);
 
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -37,35 +38,78 @@ export default function Checkout() {
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
-  const removeItem = (itemId: string) => {
-    const updatedCart = cartItems.filter((item) => item.id !== itemId);
-    setCartItems(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    window.dispatchEvent(new Event("cartUpdated"));
-  };
+  const removeItem = useCallback(
+    (itemId: string) => {
+      const updatedCart = cartItems.filter((item) => item.id !== itemId);
+      setCartItems(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+      window.dispatchEvent(new Event("cartUpdated"));
+    },
+    [cartItems]
+  );
 
-  const handlePayment = async () => {
-    // localStorage.removeItem("cart");
-    // window.dispatchEvent(new Event("cartUpdated"));
-    createOrder.mutate(
-      {
+  const subtotal = useMemo(() => {
+    return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [cartItems]);
+
+  const handleAlipay = useCallback(async () => {
+    const { data, error } = await supabase.functions.invoke("alipay-qr", {
+      body: {
         shipping_address_id: selectedAddressId,
         items: cartItems.map((i) => ({
           product_id: i.id,
           quantity: i.quantity,
         })),
+        total_amount: subtotal,
+        rate: exchangeRate,
+        total_amount_in_cny: Number((subtotal * exchangeRate).toFixed(2)),
       },
-      {
-        onSuccess: () => {
-          toast.success("订单创建成功");
-          router.push(`/`);
-        },
-        onError: () => {
-          toast.error("订单失败");
-        },
+    });
+    if (!error) {
+      setCartItems([]);
+      localStorage.removeItem("cart");
+      window.dispatchEvent(new Event("cartUpdated"));
+      window.location.href = data.url;
+      window.scrollTo(0, 0);
+      setIsLoadingPayment(true);
+    } else {
+      console.log("error", error);
+      toast.success("下单失败");
+    }
+  }, [cartItems, exchangeRate, selectedAddressId, subtotal]);
+
+  const handlePayment = useCallback(
+    async (id: string) => {
+      if (id === "alipay") {
+        await handleAlipay();
       }
+      if (id === "wechat") {
+      }
+    },
+    [handleAlipay]
+  );
+
+  useEffect(() => {
+    const convertCurrency = async () => {
+      const res = await fetch(
+        "https://api.currencyapi.com/v3/latest?apikey=cur_live_kCWYFqYrLj5fdL0iZg1ybGCLa52LS1SqYkYyaG1B"
+      );
+      const results = await res.json();
+      setExchangeRate(results.data["CNY"].value);
+    };
+    convertCurrency();
+  }, []);
+
+  if (isLoadingPayment) {
+    return (
+      <div className="min-h-screen flex mt-50 justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-red-600 mx-auto mb-4" />
+          <p className="text-gray-600">正在跳转支付页面</p>
+        </div>
+      </div>
     );
-  };
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -135,7 +179,11 @@ export default function Checkout() {
                 selectedAddressId={selectedAddressId}
                 onAddressSelect={setSelectedAddressId}
               />
-              <PaymentMethods onPayment={handlePayment} />
+              <PaymentMethods
+                onPayment={handlePayment}
+                total={subtotal}
+                exchangeRate={exchangeRate}
+              />
             </div>
 
             {/* Cart Summary */}
@@ -144,6 +192,7 @@ export default function Checkout() {
                 cartItems={cartItems}
                 onUpdateQuantity={updateQuantity}
                 onRemoveItem={removeItem}
+                subtotal={subtotal}
               />
             </div>
           </div>

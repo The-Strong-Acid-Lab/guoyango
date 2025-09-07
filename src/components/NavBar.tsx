@@ -22,7 +22,7 @@ import { supabase } from "@/lib/supabase";
 
 export const NavBar = () => {
   const router = useRouter();
-  const navigation = [{ name: "联系我们", href: "/contact" }];
+  const navigation = [{ name: "联系我们", href: "/" }];
   const [cartCount, setCartCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -131,14 +131,14 @@ export const NavBar = () => {
                           我的账号
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleIconClick("manageAddresses")}
-                        >
-                          管理收货地址
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
                           onClick={() => handleIconClick("orders")}
                         >
                           历史订单
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleIconClick("manageAddresses")}
+                        >
+                          管理收货地址
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
                       <DropdownMenuSeparator />
