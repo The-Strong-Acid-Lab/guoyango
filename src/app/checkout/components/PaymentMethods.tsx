@@ -2,18 +2,22 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useShippingAddress } from "@/app/hooks/useShippingAddress";
 
 export interface PaymentMethodsProps {
   onPayment: (paymethod: "wechat" | "alipay") => void;
   total: number;
   exchangeRate: number;
+  disabled: boolean;
 }
 
 export default function PaymentMethods({
   onPayment,
   total,
   exchangeRate,
+  disabled = false,
 }: PaymentMethodsProps) {
+  const { data: shippingAddresses } = useShippingAddress();
   const paymentMethods = [
     {
       id: "wechat",
@@ -27,8 +31,12 @@ export default function PaymentMethods({
     },
   ];
 
+  console.log(shippingAddresses);
+
   const handlePayment = (id: "wechat" | "alipay") => {
-    onPayment(id);
+    if (!disabled) {
+      onPayment(id);
+    }
   };
 
   return (
@@ -41,9 +49,14 @@ export default function PaymentMethods({
         {paymentMethods.map((method) => (
           <motion.div
             key={method.id}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="relative border rounded-xl p-4 cursor-pointer transition-all duration-200"
+            whileHover={!disabled ? { scale: 1.02 } : {}}
+            whileTap={!disabled ? { scale: 0.98 } : {}}
+            // className="relative border rounded-xl p-4 cursor-pointer transition-all duration-200"
+            className={`relative border rounded-xl p-4 transition-all duration-200 ${
+              disabled
+                ? "border-gray-100 bg-gray-50 cursor-not-allowed opacity-60"
+                : "relative border rounded-xl p-4 transition-all duration-200"
+            }`}
             onClick={() => handlePayment(method.id as "wechat" | "alipay")}
           >
             <div className="flex items-center justify-between">
@@ -55,7 +68,13 @@ export default function PaymentMethods({
                   height={24}
                 />
                 <div>
-                  <h3 className="font-semibold text-gray-900">{method.name}</h3>
+                  <h3
+                    className={`font-semibold text-gray-900  ${
+                      disabled ? "grayscale" : ""
+                    }`}
+                  >
+                    {method.name}
+                  </h3>
                 </div>
               </div>
             </div>

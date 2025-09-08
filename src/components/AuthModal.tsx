@@ -10,12 +10,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, User, AlertCircle, CheckCircle } from "lucide-react";
+import { X, User, AlertCircle, CheckCircle, Loader2Icon } from "lucide-react";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-  InputOTPSeparator,
 } from "@/components/ui/input-otp";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -34,6 +33,8 @@ export interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [showOtp, setShowOtp] = useState(false);
   const [otpValue, setOtpValue] = useState("");
+  const [sendingOTP, setSendingOTP] = useState(false);
+  const [verifyingOTP, setVerifyingOTP] = useState(false);
   const {
     register,
     handleSubmit,
@@ -47,6 +48,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const emailValue = watch("email");
 
   const verifyOTP = useCallback(async () => {
+    setVerifyingOTP(true);
     const { error } = await supabase.auth.verifyOtp({
       email: emailValue,
       token: otpValue,
@@ -60,9 +62,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     } else {
       toast.error("验证码错误");
     }
+    setVerifyingOTP(false);
   }, [emailValue, otpValue, refetch, reset, onClose]);
 
   const sendOTP = useCallback(async (formData: AuthFormData) => {
+    setSendingOTP(true);
     const { error } = await supabase.auth.signInWithOtp({
       email: formData.email,
       options: {
@@ -75,6 +79,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     } else {
       toast.error(error.message + "发送验证码失败，请联系客服");
     }
+    setSendingOTP(false);
   }, []);
 
   if (!isOpen) return null;
@@ -166,9 +171,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 {!showOtp && (
                   <Button
                     className="w-full bg-red-600 hover:bg-red-700 text-white h-11 text-base font-medium sm:mt-4"
-                    disabled={showOtp}
+                    disabled={showOtp || sendingOTP}
                     onClick={handleSubmit(sendOTP)}
                   >
+                    {sendingOTP && <Loader2Icon className="animate-spin" />}
                     发送验证码
                   </Button>
                 )}
@@ -194,9 +200,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </InputOTP>
                   <Button
                     className="w-full bg-red-600 hover:bg-red-700 text-white h-11 text-base font-medium sm:mt-4"
-                    disabled={otpValue.length !== 6}
+                    disabled={otpValue.length !== 6 || verifyingOTP}
                     onClick={verifyOTP}
                   >
+                    {verifyingOTP && <Loader2Icon className="animate-spin" />}
                     验证登录
                   </Button>
                 </div>

@@ -11,6 +11,7 @@ import PaymentMethods from "./components/PaymentMethods";
 import ShippingAddressSelector from "./components/ShippingAddressSelector";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Checkout() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function Checkout() {
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [exchangeRate, setExchangeRate] = useState(7.14);
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
+  const { data: currentUser } = useAuth();
 
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -153,11 +155,11 @@ export default function Checkout() {
             <div className="flex items-center space-x-3 sm:space-x-4">
               <Button
                 variant="ghost"
-                onClick={() => router.push("/")}
+                onClick={() => router.back()}
                 className="hover:bg-red-50 hover:text-red-700 h-10 w-10 p-0 sm:w-auto sm:px-4"
               >
                 <ArrowLeft className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">继续购买</span>
+                <span className="hidden sm:inline">返回</span>
               </Button>
             </div>
           </div>
@@ -183,6 +185,7 @@ export default function Checkout() {
                 onPayment={handlePayment}
                 total={subtotal}
                 exchangeRate={exchangeRate}
+                disabled={!selectedAddressId || !currentUser}
               />
             </div>
 

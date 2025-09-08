@@ -6,7 +6,7 @@ export function useAuth() {
     queryKey: ["user"],
     queryFn: async () => {
       const { data, error } = await supabase.auth.getUser();
-      if (error) throw error;
+      if (error || !data.user) throw error ?? new Error("No user");
       return data.user;
     },
     staleTime: 60 * 60 * 1000,

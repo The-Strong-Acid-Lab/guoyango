@@ -19,14 +19,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const NavBar = () => {
   const router = useRouter();
-  const navigation = [{ name: "联系我们", href: "/" }];
   const [cartCount, setCartCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const { data: currentUser, refetch } = useAuth();
+  const { data: currentUser } = useAuth();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -61,10 +63,15 @@ export const NavBar = () => {
   );
 
   const handleLogout = useCallback(async () => {
-    await supabase.auth.signOut();
-    await refetch();
-    router.push("/");
-  }, [refetch, router]);
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      window.location.reload();
+      router.push("/");
+    } else {
+      toast.error("退出失败");
+    }
+  }, [router, queryClient]);
 
   return (
     <>
@@ -79,35 +86,8 @@ export const NavBar = () => {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex flex-1 justify-end mr-8">
-              <nav className="flex space-x-8">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </nav>
-            </div>
 
             <div className="hidden md:flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-600 hover:text-red-600 h-9 w-9"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-600 hover:text-red-600 h-9 w-9"
-              >
-                <Heart className="h-4 w-4" />
-              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -205,82 +185,56 @@ export const NavBar = () => {
           {/* Mobile Navigation */}
           {isMenuOpen && (
             <div className="md:hidden border-t border-gray-100 py-4 bg-white">
-              <div className="flex flex-col space-y-1">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="text-gray-700 hover:text-red-600 hover:bg-red-50 px-3 py-3 text-base font-medium rounded-lg transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-                <div className="flex items-center justify-center space-x-1 px-3 py-3 border-t border-gray-100 mt-2 pt-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-600 hover:text-red-600 hover:bg-red-50 h-12 w-12"
-                  >
-                    <Search className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-600 hover:text-red-600 hover:bg-red-50 h-12 w-12"
-                  >
-                    <Heart className="h-5 w-5" />
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-gray-600 hover:text-red-600 hover:bg-red-50 h-12 w-12"
-                      >
-                        <User className="h-5 w-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="start">
-                      <DropdownMenuLabel>
-                        {!!currentUser ? "欢迎" : "我的账号"}
-                      </DropdownMenuLabel>
-                      {!!currentUser ? (
-                        <>
-                          <DropdownMenuGroup>
-                            <DropdownMenuItem
-                              onClick={() => handleIconClick("profile")}
-                            >
-                              我的账号
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleIconClick("manageAddresses")}
-                            >
-                              管理收货地址
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleIconClick("orders")}
-                            >
-                              历史订单
-                            </DropdownMenuItem>
-                          </DropdownMenuGroup>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={handleLogout}>
-                            退出
-                          </DropdownMenuItem>
-                        </>
-                      ) : (
+              <div className="flex items-center justify-center space-x-1 px-3 py-3 mt-2 pt-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-600 hover:text-red-600 hover:bg-red-50 h-12 w-12"
+                    >
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="start">
+                    <DropdownMenuLabel>
+                      {!!currentUser ? "欢迎" : "我的账号"}
+                    </DropdownMenuLabel>
+                    {!!currentUser ? (
+                      <>
                         <DropdownMenuGroup>
                           <DropdownMenuItem
-                            onClick={() => setShowAuthModal(true)}
+                            onClick={() => handleIconClick("profile")}
                           >
-                            注册/登录
+                            我的账号
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleIconClick("manageAddresses")}
+                          >
+                            管理收货地址
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleIconClick("orders")}
+                          >
+                            历史订单
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleLogout}>
+                          退出
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem
+                          onClick={() => setShowAuthModal(true)}
+                        >
+                          注册/登录
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           )}
