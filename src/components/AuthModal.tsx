@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,9 +11,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X, User, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  InputOTPSeparator,
+} from "@/components/ui/input-otp";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 import { toast } from "sonner";
+import { useAuth } from "@/app/hooks/useAuth";
 
 type AuthFormData = {
   email: string;
@@ -23,8 +31,9 @@ export interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const [showOtp, setShowOtp] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
   const {
     register,
     handleSubmit,
@@ -34,24 +43,39 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   } = useForm<AuthFormData>({
     mode: "onChange",
   });
-
+  const { refetch } = useAuth();
   const emailValue = watch("email");
 
-  const onSubmit = async (formData: AuthFormData) => {
+  const verifyOTP = useCallback(async () => {
+    const { error } = await supabase.auth.verifyOtp({
+      email: emailValue,
+      token: otpValue,
+      type: "email",
+    });
+    if (!error) {
+      await refetch();
+      reset();
+      setOtpValue("");
+      onClose();
+    } else {
+      toast.error("验证码错误");
+    }
+  }, [emailValue, otpValue, refetch, reset, onClose]);
+
+  const sendOTP = useCallback(async (formData: AuthFormData) => {
     const { error } = await supabase.auth.signInWithOtp({
       email: formData.email,
       options: {
-        emailRedirectTo: window.location.href,
+        shouldCreateUser: true,
       },
     });
     if (!error) {
-      toast.success("请查看邮件并且进行登录");
+      toast.success("已发送验证码，请查看邮件");
+      setShowOtp(true);
     } else {
-      toast.error(error.message + "登录失败，请联系客服");
+      toast.error(error.message + "发送验证码失败，请联系客服");
     }
-    reset();
-    onClose();
-  };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -139,14 +163,44 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  onClick={handleSubmit(onSubmit)}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white h-11 text-base font-medium sm:mt-4"
-                >
-                  登录/注册
-                </Button>
+                {!showOtp && (
+                  <Button
+                    className="w-full bg-red-600 hover:bg-red-700 text-white h-11 text-base font-medium sm:mt-4"
+                    disabled={showOtp}
+                    onClick={handleSubmit(sendOTP)}
+                  >
+                    发送验证码
+                  </Button>
+                )}
               </form>
+
+              {showOtp && (
+                <div className="space-y-4 mt-6">
+                  <Label>验证码</Label>
+                  <InputOTP
+                    maxLength={6}
+                    pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                    containerClassName="w-full justify-center"
+                    onChange={setOtpValue}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} className="w-14 h-14 text-2xl" />
+                      <InputOTPSlot index={1} className="w-14 h-14 text-2xl" />
+                      <InputOTPSlot index={2} className="w-14 h-14 text-2xl" />
+                      <InputOTPSlot index={3} className="w-14 h-14 text-2xl" />
+                      <InputOTPSlot index={4} className="w-14 h-14 text-2xl" />
+                      <InputOTPSlot index={5} className="w-14 h-14 text-2xl" />
+                    </InputOTPGroup>
+                  </InputOTP>
+                  <Button
+                    className="w-full bg-red-600 hover:bg-red-700 text-white h-11 text-base font-medium sm:mt-4"
+                    disabled={otpValue.length !== 6}
+                    onClick={verifyOTP}
+                  >
+                    验证登录
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
