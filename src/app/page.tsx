@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { debounce } from "lodash";
 import ProductListItem from "./components/ProductListItem";
 import { Product } from "./components/types";
+import { toast } from "sonner";
 
 export default function Home() {
   const [sortBy, setSortBy] = useState("newest");
@@ -59,6 +60,8 @@ export default function Home() {
 
     localStorage.setItem("cart", JSON.stringify(cart));
     window.dispatchEvent(new Event("cartUpdated"));
+
+    toast.success("加入购物车成功");
   };
 
   if (loading) {
