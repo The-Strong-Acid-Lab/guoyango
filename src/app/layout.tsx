@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 import Providers from "./Providers";
+import { Analytics } from "@vercel/analytics/next";
 
 const alibabaPuHuiTi = localFont({
   src: [
@@ -77,7 +78,10 @@ export default function RootLayout({
           <div className="min-h-screen flex flex-col bg-gray-50">
             <Toaster position="top-right" />
             <NavBar />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1">
+              {children}
+              <Analytics />
+            </main>
             <Footer />
           </div>
         </Providers>
