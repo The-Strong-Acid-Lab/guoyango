@@ -12,14 +12,17 @@ import ShippingAddressSelector from "./components/ShippingAddressSelector";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "../hooks/useAuth";
+import { useNavigationParams } from "../stores/navigationParams";
 
 export default function Checkout() {
   const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [exchangeRate, setExchangeRate] = useState(7.14);
-  const [isLoadingPayment, setIsLoadingPayment] = useState(false);
   const { data: currentUser } = useAuth();
+
+  const [isLoadingAlipay, setIsLoadingAlipay] = useState(false);
+  const [loadingWechat, setLoadingWechat] = useState(false);
 
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -54,41 +57,54 @@ export default function Checkout() {
     return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }, [cartItems]);
 
-  const handleAlipay = useCallback(async () => {
-    const { data, error } = await supabase.functions.invoke("alipay-qr", {
-      body: {
-        shipping_address_id: selectedAddressId,
-        items: cartItems.map((i) => ({
-          product_id: i.id,
-          quantity: i.quantity,
-        })),
-        total_amount: subtotal,
-        rate: exchangeRate,
-        total_amount_in_cny: Number((subtotal * exchangeRate).toFixed(2)),
-      },
-    });
-    if (!error) {
-      setCartItems([]);
-      localStorage.removeItem("cart");
-      window.dispatchEvent(new Event("cartUpdated"));
-      window.location.href = data.url;
-      window.scrollTo(0, 0);
-      setIsLoadingPayment(true);
-    } else {
-      console.log("error", error);
-      toast.success("下单失败");
-    }
-  }, [cartItems, exchangeRate, selectedAddressId, subtotal]);
-
   const handlePayment = useCallback(
     async (id: string) => {
+      let type = "";
       if (id === "alipay") {
-        await handleAlipay();
+        type = "alipay-qr";
       }
       if (id === "wechat") {
+        type = "wechatpay-qr";
+        setLoadingWechat(true);
+      }
+      if (type) {
+        const { data, error } = await supabase.functions.invoke(type, {
+          body: {
+            shipping_address_id: selectedAddressId,
+            items: cartItems.map((i) => ({
+              product_id: i.id,
+              quantity: i.quantity,
+            })),
+            total_amount: subtotal,
+            rate: exchangeRate,
+            total_amount_in_cny: Number((subtotal * exchangeRate).toFixed(2)),
+          },
+        });
+
+        if (!error) {
+          setCartItems([]);
+          localStorage.removeItem("cart");
+          window.dispatchEvent(new Event("cartUpdated"));
+          window.scrollTo(0, 0);
+          if (id === "alipay") {
+            setIsLoadingAlipay(true);
+            router.push("/orders");
+            window.open(data.url, "_blank");
+          }
+          if (id === "wechat") {
+            setLoadingWechat(false);
+            useNavigationParams
+              .getState()
+              .setParams({ wechatURL: data.code_url });
+            router.push("/orders");
+          }
+        } else {
+          console.log("error", error);
+          toast.success("下单失败");
+        }
       }
     },
-    [handleAlipay]
+    [cartItems, exchangeRate, selectedAddressId, subtotal, router]
   );
 
   useEffect(() => {
@@ -102,7 +118,7 @@ export default function Checkout() {
     convertCurrency();
   }, []);
 
-  if (isLoadingPayment) {
+  if (isLoadingAlipay || loadingWechat) {
     return (
       <div className="min-h-screen flex mt-50 justify-center">
         <div className="text-center">

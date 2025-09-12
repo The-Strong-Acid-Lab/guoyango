@@ -76,7 +76,7 @@ export default function RootLayout({
       <body className={`${alibabaPuHuiTi.variable} font-sans antialiased`}>
         <Providers>
           <div className="min-h-screen flex flex-col bg-gray-50">
-            <Toaster position="top-right" />
+            <Toaster position="top-center" />
             <NavBar />
             <main className="flex-1">
               {children}

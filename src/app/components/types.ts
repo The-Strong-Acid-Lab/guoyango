@@ -48,5 +48,6 @@ export interface Order {
   total_amount_in_cny: number;
   rate: number;
   payment_method: string;
+  tracking_no: string;
   shipping_address: Partial<ShippingAddress>;
 }

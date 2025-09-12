@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Package,
@@ -21,6 +21,8 @@ import Image from "next/image";
 import { Order } from "../components/types";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useNavigationParams } from "../stores/navigationParams";
+import WeChatPayModal from "../checkout/components/WeChatPayModal";
 
 export default function Orders() {
   const router = useRouter();
@@ -32,6 +34,18 @@ export default function Orders() {
   const ordersPerPage = 3;
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
   const [toAlipay, setToAlipay] = useState(false);
+
+  const { params } = useNavigationParams();
+
+  const [showWeChatModal, setShowWeChatModal] = useState(false);
+  const [wechatPaymentUrl, setWechatPaymentUrl] = useState("");
+
+  useEffect(() => {
+    if (params.wechatURL) {
+      setWechatPaymentUrl(params.wechatURL as string);
+      setShowWeChatModal(true);
+    }
+  }, [params.wechatURL]);
 
   const loading = useMemo(
     () => isLoadingAuth || isLoadingOrders,
@@ -76,8 +90,6 @@ export default function Orders() {
   const endIndex = startIndex + ordersPerPage;
   const currentOrders = orders?.slice(startIndex, endIndex);
 
-  // console.log(currentOrders);
-
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -112,9 +124,40 @@ export default function Orders() {
       }
       if (order.payment_method === "wechat") {
         setIsLoadingPayment(true);
+        const { data, error } = await supabase.functions.invoke(
+          "wechatpay-qr",
+          {
+            body: {
+              order_id: order.id,
+              shipping_address_id: order.shipping_address.id,
+              items: order.order_items.map((i) => ({
+                product_id: i.product.id,
+                quantity: i.quantity,
+              })),
+              total_amount: order.total_amount,
+              rate: order.rate,
+              total_amount_in_cny: order.total_amount_in_cny,
+            },
+          }
+        );
+        if (!error) {
+          console.log("data", data);
+          useNavigationParams
+            .getState()
+            .setParams({ wechatURL: data.code_url });
+        } else {
+          console.log("error", error);
+          toast.success("下单失败");
+        }
         setIsLoadingPayment(false);
       }
     }
+  }, []);
+
+  const handleWeChatClose = useCallback(() => {
+    setShowWeChatModal(false);
+    useNavigationParams.getState().setParams({ wechatURL: "" });
+    window.location.reload();
   }, []);
 
   if (loading) {
@@ -347,30 +390,36 @@ export default function Orders() {
                     </div>
 
                     {/* Tracking Information */}
-                    {/* {order.tracking_number && (
+                    {order?.tracking_no && (
                       <>
                         <Separator />
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
                               <p className="font-medium text-blue-900">
-                                Tracking Number
+                                快递单号
                               </p>
                               <p className="text-sm text-blue-700">
-                                {order?.tracking_number}
+                                {order?.tracking_no}
                               </p>
                             </div>
                             <Button
                               size="sm"
                               variant="outline"
                               className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                              onClick={() =>
+                                window.open(
+                                  `https://t.17track.net/zh-cn#nums=${order.tracking_no}`,
+                                  "_blank"
+                                )
+                              }
                             >
-                              Track Package
+                              查看物流
                             </Button>
                           </div>
                         </div>
                       </>
-                    )} */}
+                    )}
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-2 pt-2">
@@ -411,8 +460,8 @@ export default function Orders() {
                   onClick={() => handlePageChange(pageNumber)}
                   className={`w-10 h-10 ${
                     currentPage === pageNumber
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                      : "hover:bg-emerald-50 hover:text-emerald-700"
+                      ? "bg-red-600 hover:bg-red-700 text-white"
+                      : "hover:bg-red-50 hover:text-red-700"
                   }`}
                 >
                   {pageNumber}
@@ -439,6 +488,12 @@ export default function Orders() {
         {startIndex + 1}-{Math.min(endIndex, orders?.length || 0)} of{" "}
         {orders?.length || 0}
       </div>
+
+      <WeChatPayModal
+        isOpen={showWeChatModal}
+        onClose={handleWeChatClose}
+        paymentUrl={wechatPaymentUrl}
+      />
     </div>
   );
 }

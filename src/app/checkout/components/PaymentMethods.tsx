@@ -2,7 +2,6 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useShippingAddress } from "@/app/hooks/useShippingAddress";
 
 export interface PaymentMethodsProps {
   onPayment: (paymethod: "wechat" | "alipay") => void;
@@ -17,7 +16,6 @@ export default function PaymentMethods({
   exchangeRate,
   disabled = false,
 }: PaymentMethodsProps) {
-  const { data: shippingAddresses } = useShippingAddress();
   const paymentMethods = [
     {
       id: "wechat",
@@ -30,8 +28,6 @@ export default function PaymentMethods({
       icon: "/alipay.png",
     },
   ];
-
-  console.log(shippingAddresses);
 
   const handlePayment = (id: "wechat" | "alipay") => {
     if (!disabled) {
