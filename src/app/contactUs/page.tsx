@@ -66,7 +66,7 @@ export default function ContactUs() {
           )}
         </div>
         <div className="text-gray-500 text-sm mt-2">
-          扫码添加微信，获取更多信息
+          扫码添加微信，获取更多优惠
         </div>
       </div>
     </div>
