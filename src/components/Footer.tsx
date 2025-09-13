@@ -37,13 +37,13 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm text-gray-600">
               <li>
                 <a
-                  href="#"
+                  href="/contactUs"
                   className="hover:text-red-600 transition-colors py-1 block"
                 >
                   联系我们
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <a
                   href="#"
                   className="hover:text-red-600 transition-colors py-1 block"
@@ -58,7 +58,7 @@ export const Footer = () => {
                 >
                   物流配送
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
         </div>

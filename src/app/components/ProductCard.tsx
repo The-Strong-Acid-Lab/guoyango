@@ -51,13 +51,13 @@ export default function ProductCard({
           )}
 
           {/* Favorite Button - Hidden on small screens */}
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-white/80 hover:bg-white text-gray-600 hover:text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 hidden sm:flex w-8 h-8 sm:w-10 sm:h-10"
           >
             <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
-          </Button>
+          </Button> */}
 
           {/* Stock Status */}
           {!product.in_stock && (
@@ -80,7 +80,7 @@ export default function ProductCard({
           </div>
 
           {/* Rating - Hidden on very small screens */}
-          <div className="flex items-center mb-2 sm:mb-3">
+          {/* <div className="flex items-center mb-2 sm:mb-3">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
                 <Star
@@ -96,7 +96,7 @@ export default function ProductCard({
             <span className="text-xs text-gray-500 ml-1 sm:ml-2 hidden sm:inline">
               ({product?.rating || 0})
             </span>
-          </div>
+          </div> */}
 
           {/* Category */}
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 sm:mb-3 truncate">

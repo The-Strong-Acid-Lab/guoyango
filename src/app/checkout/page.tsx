@@ -62,6 +62,7 @@ export default function Checkout() {
       let type = "";
       if (id === "alipay") {
         type = "alipay-qr";
+        setIsLoadingAlipay(true);
       }
       if (id === "wechat") {
         type = "wechatpay-qr";
@@ -87,12 +88,10 @@ export default function Checkout() {
           window.dispatchEvent(new Event("cartUpdated"));
           window.scrollTo(0, 0);
           if (id === "alipay") {
-            setIsLoadingAlipay(true);
             router.push("/orders");
             window.open(data.url, "_blank");
           }
           if (id === "wechat") {
-            setLoadingWechat(false);
             useNavigationParams
               .getState()
               .setParams({ wechatURL: data.code_url });

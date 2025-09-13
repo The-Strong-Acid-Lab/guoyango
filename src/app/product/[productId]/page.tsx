@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   Star,
   ShoppingCart,
-  Heart,
   Share2,
   Shield,
   Truck,
@@ -21,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/lib/supabase";
 import ProductInfoAccordion from "./components/ProductInfoAccordion";
 import RelatedProducts from "./components/RelatedProducts";
+import { toast } from "sonner";
 
 export default function ProductDetail() {
   const router = useRouter();
@@ -134,13 +134,10 @@ export default function ProductDetail() {
                 variant="ghost"
                 size="icon"
                 className="hover:bg-red-50 hover:text-red-700 h-9 w-9"
-              >
-                <Heart className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:bg-red-50 hover:text-red-700 h-9 w-9"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(window.location.href);
+                  toast.success("已复制当前链接！");
+                }}
               >
                 <Share2 className="w-4 h-4" />
               </Button>
