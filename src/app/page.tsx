@@ -20,7 +20,11 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      const { data, error } = await supabase.from("products").select("*");
+      const { data, error } = await supabase
+        .from("products")
+        .select(
+          "id, image_url, price, original_price, brand, in_stock, name, created_at"
+        );
       if (!error) {
         setProducts(data as Product[]);
       }
