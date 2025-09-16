@@ -11,7 +11,6 @@ import PaymentMethods from "./components/PaymentMethods";
 import ShippingAddressSelector from "./components/ShippingAddressSelector";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "../hooks/useAuth";
 import { useNavigationParams } from "../stores/navigationParams";
 
 export default function Checkout() {
@@ -19,7 +18,6 @@ export default function Checkout() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [exchangeRate, setExchangeRate] = useState(7.14);
-  const { data: currentUser } = useAuth();
 
   const [isLoadingAlipay, setIsLoadingAlipay] = useState(false);
   const [loadingWechat, setLoadingWechat] = useState(false);
@@ -28,20 +26,6 @@ export default function Checkout() {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartItems(cart);
   }, []);
-
-  const updateQuantity = (itemId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeItem(itemId);
-      return;
-    }
-
-    const updatedCart = cartItems.map((item) =>
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    );
-    setCartItems(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    window.dispatchEvent(new Event("cartUpdated"));
-  };
 
   const removeItem = useCallback(
     (itemId: string) => {
@@ -53,8 +37,32 @@ export default function Checkout() {
     [cartItems]
   );
 
+  const updateQuantity = useCallback(
+    (itemId: string, newQuantity: number) => {
+      if (newQuantity <= 0) {
+        removeItem(itemId);
+        return;
+      }
+
+      const updatedCart = cartItems.map((item) =>
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      );
+      setCartItems(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+      window.dispatchEvent(new Event("cartUpdated"));
+    },
+    [cartItems, removeItem]
+  );
+
   const subtotal = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [cartItems]);
+
+  const cartItemsAmount = useMemo(() => {
+    return cartItems.reduce(
+      (sum: number, item: CartItem) => sum + item.quantity,
+      0
+    );
   }, [cartItems]);
 
   const handlePayment = useCallback(
@@ -200,7 +208,8 @@ export default function Checkout() {
                 onPayment={handlePayment}
                 total={subtotal}
                 exchangeRate={exchangeRate}
-                disabled={!selectedAddressId || !currentUser}
+                selectedAddressId={selectedAddressId}
+                cartItemsAmount={cartItemsAmount}
               />
             </div>
 

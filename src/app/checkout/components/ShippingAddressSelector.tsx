@@ -8,6 +8,8 @@ import { MapPin, Plus, Edit } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useShippingAddress } from "@/app/hooks/useShippingAddress";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export interface ShippingAddressSelectorProps {
   selectedAddressId: string | null;
@@ -21,6 +23,7 @@ export default function ShippingAddressSelector({
   const { data: currentUser } = useAuth();
   const { data: addresses } = useShippingAddress(currentUser?.id);
   const defaultAddress = addresses?.find((addr) => addr.is_default);
+  const router = useRouter();
 
   useEffect(() => {
     if (!selectedAddressId && defaultAddress) {
@@ -36,16 +39,21 @@ export default function ShippingAddressSelector({
             <MapPin className="w-5 h-5 text-gray-600" />
             <span>收货地址</span>
           </div>
-          <Link href="/manageAddresses">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-600 border-gray-200 hover:bg-gray-50"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              编辑
-            </Button>
-          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-gray-600 border-gray-200 hover:bg-gray-50"
+            onClick={() => {
+              if (!currentUser) {
+                toast.error("请先登录");
+              } else {
+                router.push("/manageAddresses");
+              }
+            }}
+          >
+            <Edit className="w-4 h-4 mr-2" />
+            编辑
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 sm:px-6">

@@ -1,23 +1,28 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
+import { useAuth } from "@/app/hooks/useAuth";
 
 export interface PaymentMethodsProps {
   onPayment: (paymethod: "wechat" | "alipay") => void;
   total: number;
   exchangeRate: number;
-  disabled: boolean;
+  selectedAddressId: string;
+  cartItemsAmount: number;
 }
 
 export default function PaymentMethods({
   onPayment,
   total,
   exchangeRate,
-  disabled = false,
+  selectedAddressId,
+  cartItemsAmount,
 }: PaymentMethodsProps) {
+  const { data: currentUser } = useAuth();
+
   const paymentMethods = [
     {
       id: "wechat",
@@ -43,8 +48,21 @@ export default function PaymentMethods({
     }
   };
 
+  const errorMessage = useMemo(() => {
+    if (!currentUser) {
+      return "请先登录后进行支付";
+    }
+    if (!selectedAddressId) {
+      return "请先选择邮寄地址后进行支付";
+    }
+    if (cartItemsAmount < 2) {
+      return "至少购买2条";
+    }
+    return "";
+  }, [currentUser, selectedAddressId, cartItemsAmount]);
+
   const handlePayment = (id: "wechat" | "alipay") => {
-    if (!disabled) {
+    if (!errorMessage) {
       onPayment(id);
     }
   };
@@ -54,15 +72,20 @@ export default function PaymentMethods({
       <CardHeader>
         <CardTitle>支付方式</CardTitle>
         <p className="text-sm text-gray-500">选择你的支付方式</p>
+        {errorMessage && (
+          <p className="text-base font-medium text-red-500 mt-3">
+            {errorMessage}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {paymentMethods.map((method) => (
           <motion.div
             key={method.id}
-            whileHover={!disabled ? { scale: 1.02 } : {}}
-            whileTap={!disabled ? { scale: 0.98 } : {}}
+            whileHover={!errorMessage ? { scale: 1.02 } : {}}
+            whileTap={!errorMessage ? { scale: 0.98 } : {}}
             className={`relative border rounded-xl p-4 transition-all duration-200 ${
-              disabled
+              errorMessage
                 ? "border-gray-100 bg-gray-50 cursor-not-allowed opacity-60"
                 : "relative border rounded-xl p-4 transition-all duration-200"
             }`}
@@ -79,7 +102,7 @@ export default function PaymentMethods({
                 <div>
                   <h3
                     className={`font-semibold text-gray-900  ${
-                      disabled ? "grayscale" : ""
+                      errorMessage ? "grayscale" : ""
                     }`}
                   >
                     {method.name}
@@ -95,8 +118,8 @@ export default function PaymentMethods({
           </motion.div>
         ))}
         <motion.div
-          whileHover={!disabled ? { scale: 1.02 } : {}}
-          whileTap={!disabled ? { scale: 0.98 } : {}}
+          whileHover={!errorMessage ? { scale: 1.02 } : {}}
+          whileTap={!errorMessage ? { scale: 0.98 } : {}}
           className="relative border rounded-xl p-4 transition-all duration-200 "
         >
           <div className="flex flex-col items-center justify-between gap-10">
