@@ -1,6 +1,7 @@
-import { Search, Grid, List } from "lucide-react";
+import { Search, Grid, List, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export interface ProductFiltersProps {
   sortBy: string;
@@ -10,6 +11,8 @@ export interface ProductFiltersProps {
   displayMode: "grid" | "list";
   onDisplayModeChange: (mode: "grid" | "list") => void;
   totalProducts: number;
+  filters: string[];
+  removeFilter: (filter: string) => void;
 }
 
 export const ProductFilters = ({
@@ -20,6 +23,8 @@ export const ProductFilters = ({
   displayMode,
   onDisplayModeChange,
   totalProducts,
+  filters,
+  removeFilter,
 }: ProductFiltersProps) => {
   return (
     <div className="bg-white rounded-lg sm:rounded-2xl border border-gray-100 p-4 sm:p-6 mb-6 sm:mb-8">
@@ -31,7 +36,10 @@ export const ProductFilters = ({
               type="text"
               placeholder="搜索商品..."
               value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
+              onChange={(e) => {
+                e.preventDefault();
+                onSearchChange(e.target.value);
+              }}
               className="pl-9 w-full sm:w-128"
             />
           </div>
@@ -76,6 +84,26 @@ export const ProductFilters = ({
             </select>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4 flex gap-3 flex-wrap">
+        {filters.map((filter, i) => {
+          return (
+            <div
+              key={i}
+              className="bg-black rounded-sm flex px-2 py-1 items-center gap-x-2"
+            >
+              <p className="text-white text-sm">{filter}</p>
+              <X
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeFilter(filter);
+                }}
+                className="cursor-pointer text-white w-4 h-4"
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

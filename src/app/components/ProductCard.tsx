@@ -1,5 +1,5 @@
 import React from "react";
-import { Star, Heart, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -10,6 +10,7 @@ import { ProductCardProps } from "./types";
 export default function ProductCard({
   product,
   onAddToCart,
+  onClickBrand,
 }: ProductCardProps) {
   const discountPercent = product.original_price
     ? Math.round(
@@ -99,9 +100,16 @@ export default function ProductCard({
           </div> */}
 
           {/* Category */}
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 sm:mb-3 truncate">
+          <Button
+            variant="link"
+            onClick={(e) => {
+              e.preventDefault();
+              onClickBrand(product.brand);
+            }}
+            className="p-0 text-sm text-gray-500"
+          >
             {product.brand}
-          </p>
+          </Button>
           {/* Price */}
           <div className="flex items-center justify-between mb-3 sm:mb-0">
             <div className="flex flex-col sm:flex-row sm:items-baseline sm:space-x-2">

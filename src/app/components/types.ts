@@ -16,6 +16,7 @@ export interface CartItem extends Product {
 export interface ProductCardProps {
   product: Product;
   onAddToCart: (product: ProductCardProps["product"]) => void;
+  onClickBrand: (brand: string) => void;
 }
 
 export interface OrderItem {
