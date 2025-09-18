@@ -102,9 +102,12 @@ export default function ProductCard({
           {/* Category */}
           <Button
             variant="link"
+            disabled={!onClickBrand}
             onClick={(e) => {
               e.preventDefault();
-              onClickBrand(product.brand);
+              if (onClickBrand) {
+                onClickBrand(product.brand);
+              }
             }}
             className="p-0 text-sm text-gray-500"
           >

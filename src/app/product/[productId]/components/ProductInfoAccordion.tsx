@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Truck,
-  RotateCcw,
-  CreditCard,
-  Shield,
-  Clock,
-  Package,
-} from "lucide-react";
+import { Truck, RotateCcw, CreditCard } from "lucide-react";
 import {
   Accordion,
   AccordionContent,

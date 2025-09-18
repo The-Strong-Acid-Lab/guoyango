@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { ArrowLeft, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,20 +8,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
 export default function Profile() {
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
-          <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
-          <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

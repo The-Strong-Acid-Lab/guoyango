@@ -17,6 +17,7 @@ export default function ContactUs() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch (e) {
+      console.log(e);
       setCopied(false);
     }
   };
