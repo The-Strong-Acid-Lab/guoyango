@@ -12,6 +12,7 @@ import ShippingAddressSelector from "./components/ShippingAddressSelector";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useNavigationParams } from "../stores/navigationParams";
+import { useCurrencyRate } from "../hooks/useCurrencyRate";
 
 export default function Checkout() {
   const router = useRouter();
@@ -19,10 +20,33 @@ export default function Checkout() {
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [exchangeRateUSDToCNY, setExchangeRateUSDToCNY] = useState(7.1);
   const [exchangeRateUSDToCAD, setExchangeRateUSDToCAD] = useState(1.38);
+  const { data: currencyRateData, isLoading: isLoadingCurrencyRate } =
+    useCurrencyRate();
 
   const [isLoadingAlipay, setIsLoadingAlipay] = useState(false);
   const [loadingWechat, setLoadingWechat] = useState(false);
   const [loadingGeneratingOrder, setLoadingGeneratingOrder] = useState(false);
+
+  useEffect(() => {
+    if (currencyRateData?.length === 1) {
+      setExchangeRateUSDToCAD(currencyRateData[0].usd_cad);
+      setExchangeRateUSDToCNY(currencyRateData[0].usd_cny);
+    }
+  }, [currencyRateData]);
+
+  const isLoading = useMemo(() => {
+    return (
+      isLoadingCurrencyRate ||
+      isLoadingAlipay ||
+      loadingWechat ||
+      loadingGeneratingOrder
+    );
+  }, [
+    isLoadingCurrencyRate,
+    isLoadingAlipay,
+    loadingWechat,
+    loadingGeneratingOrder,
+  ]);
 
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -171,18 +195,7 @@ export default function Checkout() {
     ]
   );
 
-  // useEffect(() => {
-  //   const convertCurrency = async () => {
-  //     const res = await fetch(
-  //       "https://api.currencyapi.com/v3/latest?apikey=cur_live_kCWYFqYrLj5fdL0iZg1ybGCLa52LS1SqYkYyaG1B"
-  //     );
-  //     const results = await res.json();
-  //     setExchangeRateUSDToCNY(results.data["CNY"].value);
-  //   };
-  //   convertCurrency();
-  // }, []);
-
-  if (isLoadingAlipay || loadingWechat || loadingGeneratingOrder) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex mt-50 justify-center">
         <div className="text-center">
