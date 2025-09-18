@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { useAuth } from "@/app/hooks/useAuth";
 
+export type PaymentTypes = "wechat" | "alipay" | "etransfer" | "manually";
+
 export interface PaymentMethodsProps {
-  onPayment: (paymethod: "wechat" | "alipay") => void;
+  onPayment: (paymethod: PaymentTypes) => void;
   total: number;
-  exchangeRate: number;
+  exchangeRateUSDToCNY: number;
+  exchangeRateUSDToCAD: number;
   selectedAddressId: string;
   cartItemsAmount: number;
 }
@@ -17,7 +20,8 @@ export interface PaymentMethodsProps {
 export default function PaymentMethods({
   onPayment,
   total,
-  exchangeRate,
+  exchangeRateUSDToCNY,
+  exchangeRateUSDToCAD,
   selectedAddressId,
   cartItemsAmount,
 }: PaymentMethodsProps) {
@@ -25,14 +29,19 @@ export default function PaymentMethods({
 
   const paymentMethods = [
     {
-      id: "wechat",
+      id: "wechat" as PaymentTypes,
       name: "微信支付",
       icon: "/wechatpay.png",
     },
     {
-      id: "alipay",
+      id: "alipay" as PaymentTypes,
       name: "支付宝支付",
       icon: "/alipay.png",
+    },
+    {
+      id: "etransfer" as PaymentTypes,
+      name: "e-Transfer (加拿大用户)",
+      icon: "/interac.png",
     },
   ];
   const wechatId = "guoyango888";
@@ -61,11 +70,25 @@ export default function PaymentMethods({
     return "";
   }, [currentUser, selectedAddressId, cartItemsAmount]);
 
-  const handlePayment = (id: "wechat" | "alipay") => {
+  const handlePayment = (type: PaymentTypes) => {
     if (!errorMessage) {
-      onPayment(id);
+      onPayment(type);
     }
   };
+
+  const displayConversion = useCallback(
+    (type: PaymentTypes) => {
+      if (type === "etransfer") {
+        return `$${total.toFixed(2)}美元 ≈ ¥${(
+          total * exchangeRateUSDToCAD
+        ).toFixed(2)}加币`;
+      }
+      return `$${total.toFixed(2)}美元 ≈ ¥${(
+        total * exchangeRateUSDToCNY
+      ).toFixed(2)}人民币`;
+    },
+    [total, exchangeRateUSDToCNY, exchangeRateUSDToCAD]
+  );
 
   return (
     <Card className="border-none shadow-lg">
@@ -111,10 +134,17 @@ export default function PaymentMethods({
               </div>
             </div>
             <div className="mt-2 ml-10">
-              <span className="text-gray-600 text-xs sm:text-sm">{`$${total.toFixed(
-                2
-              )}美元 ≈ ¥${(total * exchangeRate).toFixed(2)}人民币`}</span>
+              <span className="text-gray-600 text-xs sm:text-sm">
+                {displayConversion(method.id)}
+              </span>
             </div>
+            {method.id === "etransfer" && (
+              <div className="mt-2 ml-10">
+                <span className="text-gray-600 text-xs sm:text-sm">
+                  具体操作下完单查看历史订单
+                </span>
+              </div>
+            )}
           </motion.div>
         ))}
         <motion.div
@@ -123,9 +153,19 @@ export default function PaymentMethods({
           className="relative border rounded-xl p-4 transition-all duration-200 "
         >
           <div className="flex flex-col items-center justify-between gap-10">
-            <div className="text-gray-500 text-sm mt-2">
-              扫码联系客服，获取额外5% off
-            </div>
+            <Button
+              onClick={() => handlePayment("manually")}
+              className="bg-red-600 hover:bg-red-700 h-11 px-6 w-full"
+              size="lg"
+            >
+              <div>
+                <p>请先下单</p>
+                <p>然后扫码联系客服，获取额外5% off</p>
+              </div>
+            </Button>
+            <span className="text-gray-600 text-xs sm:text-sm">
+              {displayConversion("manually")}
+            </span>
             <Image
               src="/contactUs.JPG"
               alt="微信二维码"

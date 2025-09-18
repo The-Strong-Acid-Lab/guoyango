@@ -46,7 +46,9 @@ export interface Order {
   total_amount: number;
   status: string;
   total_amount_in_cny: number;
+  total_amount_in_cad: number;
   rate: number;
+  rate_usd_cad: number;
   payment_method: string;
   tracking_no: string;
   shipping_address: Partial<ShippingAddress>;

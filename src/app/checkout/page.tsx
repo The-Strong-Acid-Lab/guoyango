@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { CartItem } from "../components/types";
 import CartSummary from "./components/CartSummary";
-import PaymentMethods from "./components/PaymentMethods";
+import PaymentMethods, { PaymentTypes } from "./components/PaymentMethods";
 import ShippingAddressSelector from "./components/ShippingAddressSelector";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -17,10 +17,12 @@ export default function Checkout() {
   const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
-  const [exchangeRate, setExchangeRate] = useState(7.14);
+  const [exchangeRateUSDToCNY, setExchangeRateUSDToCNY] = useState(7.1);
+  const [exchangeRateUSDToCAD, setExchangeRateUSDToCAD] = useState(1.38);
 
   const [isLoadingAlipay, setIsLoadingAlipay] = useState(false);
   const [loadingWechat, setLoadingWechat] = useState(false);
+  const [loadingGeneratingOrder, setLoadingGeneratingOrder] = useState(false);
 
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -66,17 +68,26 @@ export default function Checkout() {
   }, [cartItems]);
 
   const handlePayment = useCallback(
-    async (id: string) => {
+    async (id: PaymentTypes) => {
       let type = "";
-      if (id === "alipay") {
-        type = "alipay-qr";
-        setIsLoadingAlipay(true);
+      switch (id) {
+        case "alipay":
+          type = "alipay-qr";
+          setIsLoadingAlipay(true);
+          break;
+        case "wechat":
+          type = "wechatpay-qr";
+          setLoadingWechat(true);
+          break;
+        case "etransfer":
+        case "manually":
+          type = "generate_order";
+          setLoadingGeneratingOrder(true);
+          break;
+        default:
+          break;
       }
-      if (id === "wechat") {
-        type = "wechatpay-qr";
-        setLoadingWechat(true);
-      }
-      if (type) {
+      if (type === "alipay-qr" || type === "wechatpay-qr") {
         const { data, error } = await supabase.functions.invoke(type, {
           body: {
             shipping_address_id: selectedAddressId,
@@ -85,16 +96,18 @@ export default function Checkout() {
               quantity: i.quantity,
             })),
             total_amount: subtotal,
-            rate: exchangeRate,
-            total_amount_in_cny: Number((subtotal * exchangeRate).toFixed(2)),
+            rate: exchangeRateUSDToCNY,
+            total_amount_in_cny: Number(
+              (subtotal * exchangeRateUSDToCNY).toFixed(2)
+            ),
           },
         });
 
+        window.scrollTo(0, 0);
         if (!error) {
           setCartItems([]);
           localStorage.removeItem("cart");
           window.dispatchEvent(new Event("cartUpdated"));
-          window.scrollTo(0, 0);
           if (id === "alipay") {
             router.push("/orders");
             window.open(data.url, "_blank");
@@ -106,26 +119,70 @@ export default function Checkout() {
             router.push("/orders");
           }
         } else {
+          setIsLoadingAlipay(false);
+          setLoadingWechat(false);
+          console.log("error", error);
+          toast.success("下单失败");
+        }
+      }
+
+      if (type === "generate_order") {
+        const { error } = await supabase.functions.invoke(type, {
+          body: {
+            shipping_address_id: selectedAddressId,
+            items: cartItems.map((i) => ({
+              product_id: i.id,
+              quantity: i.quantity,
+            })),
+            total_amount: subtotal,
+            rate: exchangeRateUSDToCNY,
+            rate_usd_cad: exchangeRateUSDToCAD,
+            total_amount_in_cny:
+              id === "manually"
+                ? Number((subtotal * exchangeRateUSDToCNY).toFixed(2))
+                : null,
+            total_amount_in_cad:
+              id === "etransfer"
+                ? Number((subtotal * exchangeRateUSDToCAD).toFixed(2))
+                : null,
+            payment_method: id,
+          },
+        });
+        window.scrollTo(0, 0);
+        if (!error) {
+          setCartItems([]);
+          localStorage.removeItem("cart");
+          window.dispatchEvent(new Event("cartUpdated"));
+          router.push("/orders");
+        } else {
+          setLoadingGeneratingOrder(false);
           console.log("error", error);
           toast.success("下单失败");
         }
       }
     },
-    [cartItems, exchangeRate, selectedAddressId, subtotal, router]
+    [
+      cartItems,
+      exchangeRateUSDToCNY,
+      exchangeRateUSDToCAD,
+      selectedAddressId,
+      subtotal,
+      router,
+    ]
   );
 
-  useEffect(() => {
-    const convertCurrency = async () => {
-      const res = await fetch(
-        "https://api.currencyapi.com/v3/latest?apikey=cur_live_kCWYFqYrLj5fdL0iZg1ybGCLa52LS1SqYkYyaG1B"
-      );
-      const results = await res.json();
-      setExchangeRate(results.data["CNY"].value);
-    };
-    convertCurrency();
-  }, []);
+  // useEffect(() => {
+  //   const convertCurrency = async () => {
+  //     const res = await fetch(
+  //       "https://api.currencyapi.com/v3/latest?apikey=cur_live_kCWYFqYrLj5fdL0iZg1ybGCLa52LS1SqYkYyaG1B"
+  //     );
+  //     const results = await res.json();
+  //     setExchangeRateUSDToCNY(results.data["CNY"].value);
+  //   };
+  //   convertCurrency();
+  // }, []);
 
-  if (isLoadingAlipay || loadingWechat) {
+  if (isLoadingAlipay || loadingWechat || loadingGeneratingOrder) {
     return (
       <div className="min-h-screen flex mt-50 justify-center">
         <div className="text-center">
@@ -207,7 +264,8 @@ export default function Checkout() {
               <PaymentMethods
                 onPayment={handlePayment}
                 total={subtotal}
-                exchangeRate={exchangeRate}
+                exchangeRateUSDToCNY={exchangeRateUSDToCNY}
+                exchangeRateUSDToCAD={exchangeRateUSDToCAD}
                 selectedAddressId={selectedAddressId}
                 cartItemsAmount={cartItemsAmount}
               />

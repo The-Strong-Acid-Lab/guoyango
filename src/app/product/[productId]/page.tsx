@@ -114,7 +114,7 @@ export default function ProductDetail() {
               alt={product.name}
               width={480}
               height={480}
-              className="object-contain w-120 h-120"
+              className="object-contain w-100 sm:w-120 h-80 sm:h-120"
             />
           </motion.div>
         </div>

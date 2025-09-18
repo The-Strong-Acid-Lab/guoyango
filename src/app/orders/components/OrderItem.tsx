@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Package, Calendar, Loader2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +53,41 @@ export const OrderItem = ({ order, index }: OrderItemProps) => {
         return "";
     }
   };
+
+  const getConversion = useMemo(() => {
+    if (order.payment_method !== "etransfer") {
+      return `≈ ¥${order.total_amount_in_cny.toFixed(2)} 人民币`;
+    }
+    return `≈ ${order.total_amount_in_cad.toFixed(2)} CAD`;
+  }, [order]);
+
+  const paymentIcon = useMemo(() => {
+    switch (order.payment_method) {
+      case "alipay":
+        return "/alipay.png";
+      case "wechat":
+        return "/wechatpay.png";
+      case "etransfer":
+        return "/interac.png";
+      default:
+        return "";
+    }
+  }, [order.payment_method]);
+
+  const paymentName = useMemo(() => {
+    switch (order.payment_method) {
+      case "alipay":
+        return "支付宝支付";
+      case "wechat":
+        return "微信支付";
+      case "etransfer":
+        return "e-Transfer";
+      case "manually":
+        return "通过客服额外5%";
+      default:
+        return "";
+    }
+  }, [order.payment_method]);
 
   const continueToPay = useCallback(async (order: Order) => {
     if (order.status === "pending") {
@@ -150,19 +185,21 @@ export const OrderItem = ({ order, index }: OrderItemProps) => {
             </Badge>
           </div>
 
-          {order.status === "pending" && (
-            <Button
-              size="sm"
-              className="bg-red-600 hover:bg-red-700 flex-1 h-10 sm:h-16 text-base mt-4"
-              onClick={() => continueToPay(order)}
-              disabled={isLoadingPayment || toAlipay}
-            >
-              {isLoadingPayment && toAlipay && (
-                <Loader2Icon className="animate-spin" />
-              )}
-              {toAlipay ? "正在跳转支付宝" : "继续付款"}
-            </Button>
-          )}
+          {order.status === "pending" &&
+            order.payment_method !== "etransfer" &&
+            order.payment_method !== "manually" && (
+              <Button
+                size="sm"
+                className="bg-red-600 hover:bg-red-700 flex-1 h-10 sm:h-16 text-base mt-4"
+                onClick={() => continueToPay(order)}
+                disabled={isLoadingPayment || toAlipay}
+              >
+                {isLoadingPayment && toAlipay && (
+                  <Loader2Icon className="animate-spin" />
+                )}
+                {toAlipay ? "正在跳转支付宝" : "继续付款"}
+              </Button>
+            )}
         </CardHeader>
 
         <CardContent className="px-4 sm:px-6 pt-0">
@@ -203,45 +240,52 @@ export const OrderItem = ({ order, index }: OrderItemProps) => {
             {/* Order Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {/* Pricing */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3">订单信息</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between font-semibold text-base">
-                    <span>合计：</span>
-                    <div className="flex flex-col items-end">
-                      <span className="text-emerald-600">
-                        ${order.total_amount.toFixed(2)}
-                      </span>
-                      <span className="text-gray-500">
-                        ≈ ¥{order.total_amount_in_cny.toFixed(2)}
-                      </span>
+              <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">订单信息</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between font-semibold text-base">
+                      <span>合计：</span>
+                      <div className="flex flex-col items-end">
+                        <span className="text-emerald-600">
+                          ${order.total_amount.toFixed(2)} USD
+                        </span>
+                        <span className="text-gray-500">{getConversion}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Method */}
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">支付方式：</span>
+                      <div className="flex flex-row gap-2">
+                        {order.payment_method !== "manually" && (
+                          <Image
+                            src={paymentIcon}
+                            alt={order?.payment_method}
+                            width={24}
+                            height={24}
+                          />
+                        )}
+                        <span className="font-medium">{paymentName}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Payment Method */}
-                <div className="mt-4">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600">支付方式：</span>
-                    <div className="flex flex-row gap-2">
-                      <Image
-                        src={
-                          order?.payment_method === "alipay"
-                            ? "/alipay.png"
-                            : "/wechatpay.png"
-                        }
-                        alt={order?.payment_method}
-                        width={24}
-                        height={24}
-                      />
-                      <span className="font-medium">
-                        {order?.payment_method === "alipay"
-                          ? "支付宝支付"
-                          : "微信支付"}
-                      </span>
+                {order.payment_method === "etransfer" && (
+                  <div>
+                    <div className="flex flex-col">
+                      <span className="text-gray-600">e-Transfer email:</span>
+                      <span className="font-medium">ohzagawa@gmail.com</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-gray-600">Message:</span>
+                      <span className="font-medium">{order.id}</span>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Shipping Address */}
