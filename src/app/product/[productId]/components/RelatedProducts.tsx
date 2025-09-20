@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { Product } from "@/app/components/types";
 import ProductCard from "@/app/components/ProductCard";
+import { useRelatedProducts } from "@/app/hooks/useRelatedProducts";
 
 export interface RelatedProductsProps {
   currentProduct: Product;
@@ -13,27 +14,31 @@ export default function RelatedProducts({
   currentProduct,
   onAddToCart,
 }: RelatedProductsProps) {
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  // const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  // const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadRelatedProducts = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase.from("products").select("*");
-        if (!error) {
-          setRelatedProducts(data);
-        }
-      } catch (error) {
-        console.error("Error loading related products:", error);
-      }
-      setLoading(false);
-    };
+  // useEffect(() => {
+  //   const loadRelatedProducts = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const { data, error } = await supabase.from("products").select("*");
+  //       if (!error) {
+  //         setRelatedProducts(data);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error loading related products:", error);
+  //     }
+  //     setLoading(false);
+  //   };
 
-    loadRelatedProducts();
-  }, [currentProduct]);
+  //   loadRelatedProducts();
+  // }, [currentProduct]);
 
-  if (loading) {
+  const { data: relatedProducts, isLoading } = useRelatedProducts(
+    currentProduct?.brand
+  );
+
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -58,7 +63,7 @@ export default function RelatedProducts({
     );
   }
 
-  if (relatedProducts.length === 0) {
+  if (relatedProducts?.length === 0) {
     return null;
   }
 
@@ -66,7 +71,7 @@ export default function RelatedProducts({
     <div className="space-y-6">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900">相关推荐</h2>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {relatedProducts.map((product, index) => (
+        {relatedProducts?.map((product, index) => (
           <motion.div
             key={product.id}
             initial={{ opacity: 0, y: 20 }}

@@ -23,6 +23,7 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [filters, setFilters] = useState<string[]>([]);
+  const [total, setTotal] = useState<number>(0);
 
   const addFilters = useCallback(
     (brand: string) => {
@@ -63,6 +64,7 @@ export default function Home() {
       if (!error) {
         setTotalPages(Math.ceil((count || 0) / pageSize));
         setProducts(data);
+        setTotal(count || 0);
       }
       setLoading(false);
     }, 500);
@@ -266,7 +268,7 @@ export default function Home() {
         onSearchChange={setSearchQuery}
         displayMode={displayMode}
         onDisplayModeChange={setDisplayMode}
-        totalProducts={products.length}
+        totalProducts={total}
         filters={filters}
         removeFilter={(filter) => removeFilter(filter)}
       />

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ArrowLeft,
   Star,
@@ -21,30 +21,32 @@ import { supabase } from "@/lib/supabase";
 import ProductInfoAccordion from "./components/ProductInfoAccordion";
 import RelatedProducts from "./components/RelatedProducts";
 import { toast } from "sonner";
+import { useProductDetails } from "@/app/hooks/useProductDetails";
+import { useRelatedProducts } from "@/app/hooks/useRelatedProducts";
 
 export default function ProductDetail() {
   const router = useRouter();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
+  // const [product, setProduct] = useState<Product | null>(null);
+  // const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-
   const { productId } = useParams<{ productId: string }>();
+  const { data: product, isLoading } = useProductDetails(productId);
 
-  useEffect(() => {
-    const loadProduct = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("id", productId);
-      if (!error) {
-        setProduct(data[0]);
-      }
-      setLoading(false);
-    };
+  // useEffect(() => {
+  //   const loadProduct = async () => {
+  //     setLoading(true);
+  //     const { data, error } = await supabase
+  //       .from("products")
+  //       .select("*")
+  //       .eq("id", productId);
+  //     if (!error) {
+  //       setProduct(data[0]);
+  //     }
+  //     setLoading(false);
+  //   };
 
-    loadProduct();
-  }, [productId]);
+  //   loadProduct();
+  // }, [productId]);
 
   const addToCart = () => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -63,7 +65,7 @@ export default function ProductDetail() {
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-12">
