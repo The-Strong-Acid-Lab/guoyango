@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://guoyango.com/
+
+# Sitemaps
+Sitemap: https://guoyango.com/sitemap.xml

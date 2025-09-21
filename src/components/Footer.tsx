@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export const Footer = () => {
   return (
     <footer className="bg-white border-t border-gray-100 mt-8 sm:mt-16">
@@ -15,20 +17,20 @@ export const Footer = () => {
             <h4 className="font-semibold text-gray-900 mb-3 sm:mb-4">购买</h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/"
                   className="hover:text-red-600 transition-colors py-1 block"
                 >
                   最畅销
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/"
                   className="hover:text-red-600 transition-colors py-1 block"
                 >
                   折扣
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
