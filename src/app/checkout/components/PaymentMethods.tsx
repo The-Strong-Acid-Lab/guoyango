@@ -79,7 +79,7 @@ export default function PaymentMethods({
   const displayConversion = useCallback(
     (type: PaymentTypes) => {
       if (type === "etransfer") {
-        return `$${total.toFixed(2)}美元 ≈ ¥${(
+        return `$${total.toFixed(2)}美元 ≈ $${(
           total * exchangeRateUSDToCAD
         ).toFixed(2)}加币`;
       }
