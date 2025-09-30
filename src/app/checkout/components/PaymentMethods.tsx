@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { useAuth } from "@/app/hooks/useAuth";
+import amplitude from "@/app/amplitude";
 
 export type PaymentTypes = "wechat" | "alipay" | "etransfer" | "manually";
 
@@ -72,6 +73,10 @@ export default function PaymentMethods({
 
   const handlePayment = (type: PaymentTypes) => {
     if (!errorMessage) {
+      amplitude.track("on click payment", {
+        id: currentUser?.id || "",
+        paymentMethod: type,
+      });
       onPayment(type);
     }
   };

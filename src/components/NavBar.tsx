@@ -21,6 +21,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import amplitude from "@/app/amplitude";
 
 export const NavBar = () => {
   const router = useRouter();
@@ -102,23 +103,45 @@ export const NavBar = () => {
                     <>
                       <DropdownMenuGroup>
                         <DropdownMenuItem
-                          onClick={() => handleIconClick("profile")}
+                          onClick={() => {
+                            handleIconClick("profile");
+                            amplitude.track("on click profile", {
+                              id: currentUser?.id || "",
+                            });
+                          }}
                         >
                           我的账号
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleIconClick("orders")}
+                          onClick={() => {
+                            handleIconClick("orders");
+                            amplitude.track("on click orders", {
+                              id: currentUser?.id || "",
+                            });
+                          }}
                         >
                           历史订单
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleIconClick("manageAddresses")}
+                          onClick={() => {
+                            handleIconClick("manageAddresses");
+                            amplitude.track("on click manage addresses", {
+                              id: currentUser?.id || "",
+                            });
+                          }}
                         >
                           管理收货地址
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout}>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          amplitude.track("on click logout", {
+                            id: currentUser?.id || "",
+                          });
+                          handleLogout();
+                        }}
+                      >
                         退出
                       </DropdownMenuItem>
                     </>

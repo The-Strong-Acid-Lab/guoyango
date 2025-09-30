@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,12 +6,15 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { ProductCardProps } from "./types";
+import amplitude from "@/app/amplitude";
+import { useAuth } from "../hooks/useAuth";
 
 export default function ProductCard({
   product,
   onAddToCart,
   onClickBrand,
 }: ProductCardProps) {
+  const { data: currentUser } = useAuth();
   const discountPercent = product.original_price
     ? Math.round(
         ((product.original_price - product.price) / product.original_price) *
@@ -25,7 +28,18 @@ export default function ProductCard({
     e.preventDefault();
     e.stopPropagation();
     onAddToCart(product);
+    amplitude.track("add to cart", {
+      id: currentUser?.id || "",
+      productId: product?.id || "",
+    });
   };
+
+  const onClickProduct = useCallback(() => {
+    amplitude.track("click product", {
+      id: currentUser?.id || "",
+      productId: product?.id || "",
+    });
+  }, [currentUser?.id, product?.id]);
 
   return (
     <motion.div
@@ -33,7 +47,7 @@ export default function ProductCard({
       transition={{ duration: 0.2 }}
       className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-xl transition-all duration-300"
     >
-      <Link href={`/product/${product.id}`}>
+      <Link href={`/product/${product.id}`} onClick={onClickProduct}>
         <div className="relative">
           <div className="relative w-full h-32 sm:h-48 group-hover:scale-105 transition-transform duration-500 ">
             <Image

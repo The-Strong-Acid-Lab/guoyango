@@ -1,6 +1,8 @@
 import { Search, Grid, List, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "../hooks/useAuth";
+import amplitude from "@/app/amplitude";
 
 export interface ProductFiltersProps {
   sortBy: string;
@@ -25,6 +27,8 @@ export const ProductFilters = ({
   filters,
   removeFilter,
 }: ProductFiltersProps) => {
+  const { data: currentUser } = useAuth();
+
   return (
     <div className="bg-white rounded-lg sm:rounded-2xl border border-gray-100 p-4 sm:p-6 mb-6 sm:mb-8">
       <div className="pt-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 sm:gap-4">
@@ -38,6 +42,10 @@ export const ProductFilters = ({
               onChange={(e) => {
                 e.preventDefault();
                 onSearchChange(e.target.value);
+                amplitude.track("search products", {
+                  id: currentUser?.id || "",
+                  searchText: e.target.value,
+                });
               }}
               className="pl-9 w-full sm:w-128"
             />
@@ -52,7 +60,13 @@ export const ProductFilters = ({
             <Button
               variant={displayMode === "grid" ? "default" : "ghost"}
               size="icon"
-              onClick={() => onDisplayModeChange("grid")}
+              onClick={() => {
+                onDisplayModeChange("grid");
+                amplitude.track("on change display mode", {
+                  id: currentUser?.id || "",
+                  displayMode: "grid",
+                });
+              }}
               className={`w-9 h-9 ${
                 displayMode === "grid" && "bg-white shadow-sm"
               }`}
@@ -62,7 +76,13 @@ export const ProductFilters = ({
             <Button
               variant={displayMode === "list" ? "default" : "ghost"}
               size="icon"
-              onClick={() => onDisplayModeChange("list")}
+              onClick={() => {
+                onDisplayModeChange("list");
+                amplitude.track("on change display mode", {
+                  id: currentUser?.id || "",
+                  displayMode: "list",
+                });
+              }}
               className={`w-9 h-9 ${
                 displayMode === "list" && "bg-white shadow-sm"
               }`}
@@ -74,7 +94,13 @@ export const ProductFilters = ({
           <div className="flex flex-1 flex-col sm:flex-row items-center gap-2">
             <select
               value={sortBy}
-              onChange={(e) => onSortChange(e.target.value)}
+              onChange={(e) => {
+                onSortChange(e.target.value);
+                amplitude.track("on change sort by", {
+                  id: currentUser?.id || "",
+                  sortBy: e.target.value,
+                });
+              }}
               className="w-full sm:w-auto text-sm border border-gray-200 rounded-lg px-3 py-2 h-10 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               {/* <option value="popularity">最受欢迎</option> */}
@@ -97,6 +123,10 @@ export const ProductFilters = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   removeFilter(filter);
+                  amplitude.track("remove filter", {
+                    id: currentUser?.id || "",
+                    removedFilter: filter,
+                  });
                 }}
                 className="cursor-pointer text-white w-4 h-4"
               />

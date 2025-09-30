@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CartItem } from "@/app/components/types";
 import Image from "next/image";
+import amplitude from "@/app/amplitude";
+import { useAuth } from "@/app/hooks/useAuth";
 
 export interface CartSummaryProps {
   cartItems: CartItem[];
@@ -19,6 +21,8 @@ export default function CartSummary({
   onRemoveItem,
   subtotal,
 }: CartSummaryProps) {
+  const { data: currentUser } = useAuth();
+
   return (
     <Card className="border-none shadow-lg">
       <CardHeader className="p-4 sm:p-6">
@@ -57,7 +61,13 @@ export default function CartSummary({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 sm:h-7 sm:w-7"
-                  onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                  onClick={() => {
+                    onUpdateQuantity(item.id, item.quantity - 1);
+                    amplitude.track("reduce amount", {
+                      id: currentUser?.id || "",
+                      productId: item?.id || "",
+                    });
+                  }}
                 >
                   <Minus className="w-3 h-3" />
                 </Button>
@@ -68,7 +78,13 @@ export default function CartSummary({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 sm:h-7 sm:w-7"
-                  onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                  onClick={() => {
+                    onUpdateQuantity(item.id, item.quantity + 1);
+                    amplitude.track("increase amount", {
+                      id: currentUser?.id || "",
+                      productId: item?.id || "",
+                    });
+                  }}
                 >
                   <Plus className="w-3 h-3" />
                 </Button>
@@ -76,7 +92,13 @@ export default function CartSummary({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 sm:h-7 sm:w-7 text-red-500 hover:bg-red-50"
-                  onClick={() => onRemoveItem(item.id)}
+                  onClick={() => {
+                    onRemoveItem(item.id);
+                    amplitude.track("remove proudct", {
+                      id: currentUser?.id || "",
+                      productId: item?.id || "",
+                    });
+                  }}
                 >
                   <Trash2 className="w-3 h-3" />
                 </Button>
