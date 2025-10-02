@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import Providers from "./Providers";
 import { Analytics } from "@vercel/analytics/next";
 import { Amplitude } from "@/app/amplitude";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const alibabaPuHuiTi = localFont({
   src: [
@@ -83,6 +84,7 @@ export default function RootLayout({
             <main className="flex-1">
               {children}
               <Analytics />
+              <SpeedInsights />
             </main>
             <Footer />
           </div>
