@@ -21,7 +21,7 @@ export default function ProductInfoAccordion() {
           <div className="space-y-2 text-sm text-gray-600">
             <p>• 下单后我们会第一时间发货</p>
             <p>• 通过历史订单查看物流信息</p>
-            <p>• 一般5-10天就能到货</p>
+            <p>• 一般3-7天就能到货</p>
           </div>
         </AccordionContent>
       </AccordionItem>
