@@ -131,8 +131,17 @@ export default async function ProductDetail({
           },
         },
       },
+      shippingDestination: [
+        { "@type": "DefinedRegion", addressCountry: "US" },
+        { "@type": "DefinedRegion", addressCountry: "CA" },
+      ],
       hasMerchantReturnPolicy: {
         "@type": "MerchantReturnPolicy",
+        applicableCountry: [
+          { "@type": "Country", name: "United States" },
+          { "@type": "Country", name: "Canada" },
+          { "@type": "Country", name: "Rest of world" },
+        ],
         returnPolicyCategory:
           "https://schema.org/MerchantReturnFiniteReturnWindow",
         merchantReturnDays: 30,
