@@ -57,7 +57,7 @@ export default function ProductInfoAccordion() {
             <div>
               <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
                 <li>直接联系客服，可以额外享受5% off</li>
-                <li>微信支付</li>
+                <li className="line-through">微信支付</li>
                 <li>支付宝支付</li>
                 <li>加拿大用户支持e-Transfer</li>
               </ul>

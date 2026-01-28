@@ -92,7 +92,7 @@ export default function PaymentMethods({
         total * exchangeRateUSDToCNY
       ).toFixed(2)}人民币`;
     },
-    [total, exchangeRateUSDToCNY, exchangeRateUSDToCAD]
+    [total, exchangeRateUSDToCNY, exchangeRateUSDToCAD],
   );
 
   return (
@@ -107,51 +107,64 @@ export default function PaymentMethods({
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        {paymentMethods.map((method) => (
-          <motion.div
-            key={method.id}
-            whileHover={!errorMessage ? { scale: 1.02 } : {}}
-            whileTap={!errorMessage ? { scale: 0.98 } : {}}
-            className={`relative border rounded-xl p-4 transition-all duration-200 ${
-              errorMessage
-                ? "border-gray-100 bg-gray-50 cursor-not-allowed opacity-60"
-                : "relative border rounded-xl p-4 transition-all duration-200"
-            }`}
-            onClick={() => handlePayment(method.id as "wechat" | "alipay")}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Image
-                  src={method.icon}
-                  alt={method.name}
-                  width={24}
-                  height={24}
-                />
-                <div>
-                  <h3
-                    className={`font-semibold text-gray-900  ${
-                      errorMessage ? "grayscale" : ""
-                    }`}
-                  >
-                    {method.name}
-                  </h3>
+        {paymentMethods.map((method) => {
+          const isWechatDisabled = method.id === "wechat";
+          const isDisabled = Boolean(errorMessage) || isWechatDisabled;
+
+          return (
+            <motion.div
+              key={method.id}
+              whileHover={!isDisabled ? { scale: 1.02 } : {}}
+              whileTap={!isDisabled ? { scale: 0.98 } : {}}
+              className={`relative border rounded-xl p-4 transition-all duration-200 ${
+                isDisabled
+                  ? "border-gray-100 bg-gray-50 cursor-not-allowed opacity-60"
+                  : "relative border rounded-xl p-4 transition-all duration-200"
+              }`}
+              onClick={() => {
+                if (isDisabled) return;
+                handlePayment(method.id);
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Image
+                    src={method.icon}
+                    alt={method.name}
+                    width={24}
+                    height={24}
+                  />
+                  <div>
+                    <h3
+                      className={`font-semibold text-gray-900  ${
+                        isDisabled ? "grayscale" : ""
+                      }`}
+                    >
+                      {method.name}
+                      {isWechatDisabled && (
+                        <span className="ml-2 text-xs font-normal text-gray-500">
+                          (暂不可用，请联系客服)
+                        </span>
+                      )}
+                    </h3>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="mt-2 ml-10">
-              <span className="text-gray-600 text-xs sm:text-sm">
-                {displayConversion(method.id)}
-              </span>
-            </div>
-            {method.id === "etransfer" && (
               <div className="mt-2 ml-10">
                 <span className="text-gray-600 text-xs sm:text-sm">
-                  具体操作下完单查看历史订单
+                  {displayConversion(method.id)}
                 </span>
               </div>
-            )}
-          </motion.div>
-        ))}
+              {method.id === "etransfer" && (
+                <div className="mt-2 ml-10">
+                  <span className="text-gray-600 text-xs sm:text-sm">
+                    具体操作下完单查看历史订单
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
         <motion.div
           whileHover={!errorMessage ? { scale: 1.02 } : {}}
           whileTap={!errorMessage ? { scale: 0.98 } : {}}
