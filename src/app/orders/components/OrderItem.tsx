@@ -56,9 +56,13 @@ export const OrderItem = ({ order, index }: OrderItemProps) => {
 
   const getConversion = useMemo(() => {
     if (order.payment_method !== "etransfer") {
-      return `≈ ¥${order.total_amount_in_cny.toFixed(2)} 人民币`;
+      return order.total_amount_in_cny
+        ? `≈ ¥${order.total_amount_in_cny?.toFixed(2)} 人民币`
+        : "";
     }
-    return `≈ ${order.total_amount_in_cad.toFixed(2)} CAD`;
+    return order.total_amount_in_cad
+      ? `≈ ${order.total_amount_in_cad.toFixed(2)} CAD`
+      : "";
   }, [order]);
 
   const paymentIcon = useMemo(() => {
@@ -132,7 +136,7 @@ export const OrderItem = ({ order, index }: OrderItemProps) => {
               rate: order.rate,
               total_amount_in_cny: order.total_amount_in_cny,
             },
-          }
+          },
         );
         if (!error) {
           console.log("data", data);
@@ -330,7 +334,7 @@ export const OrderItem = ({ order, index }: OrderItemProps) => {
                       onClick={() =>
                         window.open(
                           `https://www.trackingmore.com/track/en/${order.tracking_no}`,
-                          "_blank"
+                          "_blank",
                         )
                       }
                     >
